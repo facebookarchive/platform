@@ -1,0 +1,5 @@
+MAIN_PATH     = /home/fbplatform/fbplatform.mancrushonmcslee.com/smiley/
+ROOT_LOCATION = http://fbplatform.mancrushonmcslee.com/smiley/
+APP_SUFFIX    = mysmiley/
+API_KEY       = aa08653913021c3435f9deef7ed9693b
+SECRET_KEY    = f902d96f663db49e83c80d83d1e93725
