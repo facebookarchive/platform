@@ -59,12 +59,7 @@ class FacebookRestClient {
     $this->batch_mode = FacebookRestClient::BATCH_MODE_DEFAULT;
     $this->last_call_id = 0;
     $this->call_as_apikey = '';
-    // NOTE: if you change this file near this line, you must update changes.patch!
-    if ($server_addr) {
-      $this->server_addr = $server_addr;
-    } else {
-      $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
-    }
+    $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
     if (!empty($GLOBALS['facebook_config']['debug'])) {
       $this->cur_id = 0;
       ?>

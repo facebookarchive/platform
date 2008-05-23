@@ -4,14 +4,16 @@ $constants = "<?php\n";
 foreach($settings as $key => $value) {
   $constants .= "define('$key', '$value');\n";
 }
-$constants .= "define('LIB_PATH', MAIN_PATH . 'lib/')\n";
-$constants .= "define('CLIENT_PATH', MAIN_PATH . 'client/')\n";
-$constants .= "define('IMAGE_LOCATION', ROOT_LOCATION . 'images/')\n";
+$constants .= "define('LIB_PATH', MAIN_PATH . 'lib/');\n";
+$constants .= "define('CLIENT_PATH', MAIN_PATH . 'client/');\n";
+$constants .= "define('IMAGE_LOCATION', ROOT_LOCATION . 'images/');\n";
 
 
 include_once $settings['MAIN_PATH'].'client/facebook.php';
 $fb = new Facebook($settings['API_KEY'], $settings['SECRET_KEY']);
 define('ROOT_LOCATION', $settings['ROOT_LOCATION']);
+define('APP_SUFFIX', $settings['APP_SUFFIX']);
+
 $data = array('application_name'  => 'Smiley',
               'callback_url'      => ROOT_LOCATION,
 
@@ -43,7 +45,7 @@ $full_story = array('template_title' => '{actor} is feeling very {mood} today',
 
 
 $res = $fb->api_client->feed_registerTemplateBundle($one_line_story, $short_story, $full_story);
-$constants .= "define('FEED_STORY_1', $res)\n";
+$constants .= "define('FEED_STORY_1', $res);\n";
 
 // Set feed template 2 (for them)
 $one_line_story = '{actor} just wanted to {emote} at {target} today';
@@ -57,7 +59,7 @@ $full_story = array('template_title'   => '{actor} just wanted to {emote} at {ta
 
 
 $res = $fb->api_client->feed_registerTemplateBundle($one_line_story, $short_story, $full_story);
-$constants .= "define('FEED_STORY_2', $res)\n";
+$constants .= "define('FEED_STORY_2', $res);\n";
 
 
 // Set info options
