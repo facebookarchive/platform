@@ -88,3 +88,9 @@ h2 {
   margin-left: 185px;
   margin-top:  20px;
 }
+
+.section_button {
+  overflow: hidden;
+  padding: 20px;
+
+}

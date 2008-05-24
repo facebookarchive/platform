@@ -18,8 +18,8 @@ function render_bool($res) {
  */
 
 function render_header($selected ='Home') {
-  $header = '<link rel="stylesheet" type="text/css" href="'.ROOT_LOCATION.'/css/page.css?id='.uniqid().'" />';
-  $header .= '<script src="'.ROOT_LOCATION.'/js/base.js?id='.uniqid().'" ></script>';
+  $header = '<link rel="stylesheet" type="text/css" href="'.ROOT_LOCATION.'/css/page.css?id='.20.'" />';
+  $header .= '<script src="'.ROOT_LOCATION.'/js/base.js?id='.20.'" ></script>';
 
   $header .= '<fb:dashboard/>';
 
