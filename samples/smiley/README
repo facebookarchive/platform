@@ -22,7 +22,7 @@ follow these steps .
 need to give are application name and an app.facebook.com/{APP_SUFFIX}
 url. The app will configure the rest.
 
-2) Copy the file settings.ini.sample to settings.ini. Fill out your MAIN_PATH, ROOT_LOCATION, APP_SUFFIX, API_KEY, and SECRET_KEY in settings.
+2) Copy the file settings.ini.sample to settings.ini. Fill out your ROOT_LOCATION, APP_SUFFIX, API_KEY, and SECRET_KEY in settings.
 
 3) From the command line, run 'php setup.php' which will set your app
 settings and create your feed templates.
