@@ -11,7 +11,6 @@ include_once LIB_PATH.'display.php';
 include_once LIB_PATH.'feed.php';
 
 $moods = get_moods();
-
 if ($_POST['method']=='publisher_getFeedStory') {
 
   $picked = $_POST['app_params']['picked'];
@@ -19,7 +18,7 @@ if ($_POST['method']=='publisher_getFeedStory') {
   $image = IMAGE_LOCATION . '/smile' . $picked . '.jpg';
 
   $images = array(array('src' => $image,
-                        'href' => 'http://apps.facebook.com/mysmiley'));
+                        'href' => 'http://apps.facebook.com/'.APP_SUFFIX));
 
   $feed = array('template_id' => FEED_STORY_1,
                 'template_data' => array('mood' => $moods[$picked][0],

@@ -11,10 +11,8 @@ $fb     = get_fb();
 
 // The smiley that was chosen
 $picked = $_POST['picked'];
-foreach ($_POST as $key=> $val) {
-  error_log($key.'-'.$val);
-}
 $moods  = get_moods();
+$canvas_url = $fb->get_facebook_url('apps') . APP_SUFFIX;
 
 
 if ($picked != -1) {
@@ -24,8 +22,8 @@ if ($picked != -1) {
 
   $image = IMAGE_LOCATION . '/smile'.$picked.'.jpg';
 
-  $images = array(array('src' => $image,
-                        'href' => 'http://apps.facebook.com/mysmiley'));
+  $images = array(array('src'  => $image,
+                        'href' => $canvas_url));
   error_log($moods[$picked][0]);
   error_log($picked);
   $feed = array('template_id' => FEED_STORY_1,
@@ -36,7 +34,7 @@ if ($picked != -1) {
 
   $data = array('method'=> 'feedStory',
                 'content' => array( 'feed'    => $feed,
-                                    'next'    => 'http://apps.facebook.com/mysmiley/index.php'));
+                                    'next'    => $canvas_url));
 
 } else {
   $data = array('errorCode'=> VALIDATION_ERROR,
@@ -45,32 +43,3 @@ if ($picked != -1) {
 }
 
 echo json_encode($data);
-
-  /*  $content = '<style>.box2 {
-  padding: 10px;
-  width : 100px;
-  float : left;
-  text-align: center;
-  border: black 1px;
-  margin-right: 10px;
-  margin-left: 10px;
-  cursor: pointer;
-  border: black solid 2px;
-  background: orange;
-  margin-left: 32px;
-  margin-top: 30px;
-}
-h2 {
-text-align: center;
-font-size: 11px;
-color:#3B5998;
-
-}
-
-.box2 .smiley {
-  font-size: 35pt;
-  font-weight: bold;
-  padding: 20px;
-}
-</style>
-<div class="box2"><div class="smiley">'.$moods[$picked][1].'</div><div >'.$moods[$picked][0].'</div></div>';*/
