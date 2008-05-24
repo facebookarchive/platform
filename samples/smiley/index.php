@@ -15,7 +15,7 @@ $user = $fb->require_login();
 // Don't set them every time.
 $is_set = $fb->api_client->data_getUserPreference(1);
 
-if ($is_set != 'set1') {
+if ($is_set != 'set') {
   // Setting info section for example
   // (Don't do this! Wait for user to add content)
   $info_fields = get_sample_info();
@@ -23,7 +23,7 @@ if ($is_set != 'set1') {
 
   // Setting info main profile box for example
   // (Don't do this! Wait for user to add content)
-  $main_box =  get_user_profile_box(array('Happy', ':)'));
+  $main_box =  get_user_profile_box(array('Happy', ':)'), $user);
   $fb->api_client->profile_setFBML(null, $user, null, null, null, $main_box);
 
  // Don't do this again

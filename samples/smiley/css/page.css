@@ -81,5 +81,10 @@ h2 {
 
 .past {
  margin-left:auto;
- width: 500px;
+ width: 550px;
+}
+
+.input_row {
+  margin-left: 185px;
+  margin-top:  20px;
 }
