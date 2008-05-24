@@ -1,6 +1,6 @@
 <?php
 $settings = parse_ini_file('settings.ini');
-chdir('../..');
+chdir('..');
 $settings['MAIN_PATH'] = getcwd() . '/';
 $constants = "<?php\n";
 foreach($settings as $key => $value) {
