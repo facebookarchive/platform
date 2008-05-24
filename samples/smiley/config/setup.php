@@ -14,22 +14,25 @@ $fb = new Facebook($settings['API_KEY'], $settings['SECRET_KEY']);
 define('ROOT_LOCATION', $settings['ROOT_LOCATION']);
 define('APP_SUFFIX', $settings['APP_SUFFIX']);
 
-$data = array('application_name'  => 'Smiley',
-              'callback_url'      => ROOT_LOCATION,
+$data = array('application_name'   => 'Smiley',
+              'callback_url'       => ROOT_LOCATION,
 
               // The url for the app tab relative to callback url
-              'tab_default_name'  => 'Smile',
-              'profile_tab_url'   => 'mysmilies.php',
+              'tab_default_name'   => 'Smile',
+              'profile_tab_url'    => 'mysmilies.php',
 
               // Publisher for other users profiles
-              'publish_action'    => 'Smile at!',
-              'publish_url'       => ROOT_LOCATION . '/handlers/otherPublishHandler.php',
+              'publish_action'     => 'Smile at!',
+              'publish_url'        => ROOT_LOCATION . '/handlers/otherPublishHandler.php',
               // Publisher for you own profile
               'publish_self_action'=> 'Smile!',
-              'publish_self_url'  => ROOT_LOCATION . '/handlers/publishHandler.php',
+              'publish_self_url'   => ROOT_LOCATION . '/handlers/publishHandler.php',
 
               // Info changed callback url
-              'info_changed_url' => ROOT_LOCATION . '/handlers/infoHandler.php'
+              'info_changed_url'   => ROOT_LOCATION . '/handlers/infoHandler.php',
+
+              // Wide canvas
+              'wide_mode'          => true
               );
 
 $fb->api_client->admin_setAppProperties($data);
