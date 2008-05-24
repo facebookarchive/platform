@@ -1,5 +1,8 @@
 <?php
 
+define(CSS_VERSION, '20');
+define(JS_VERSION,  '20');
+
 function render_bool($res) {
   if ($res) {
     return 'true';
@@ -18,8 +21,8 @@ function render_bool($res) {
  */
 
 function render_header($selected ='Home') {
-  $header = '<link rel="stylesheet" type="text/css" href="'.ROOT_LOCATION.'/css/page.css?id='.20.'" />';
-  $header .= '<script src="'.ROOT_LOCATION.'/js/base.js?id='.20.'" ></script>';
+  $header = '<link rel="stylesheet" type="text/css" href="'.ROOT_LOCATION.'/css/page.css?id='.CSS_VERSION.'" />';
+  $header .= '<script src="'.ROOT_LOCATION.'/js/base.js?id='.JS_VERSION.'" ></script>';
 
   $header .= '<fb:dashboard/>';
 
