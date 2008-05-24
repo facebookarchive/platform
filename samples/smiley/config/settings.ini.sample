@@ -1,4 +1,3 @@
-MAIN_PATH     = {local full path}
 ROOT_LOCATION = {your callback url}
 APP_SUFFIX    = {youappurl/}
 API_KEY       =

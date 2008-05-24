@@ -1,5 +1,6 @@
 <?php
 $settings = parse_ini_file('settings.ini');
+$settings['MAIN_PATH'] = getcwd() . '/';
 $constants = "<?php\n";
 foreach($settings as $key => $value) {
   $constants .= "define('$key', '$value');\n";
