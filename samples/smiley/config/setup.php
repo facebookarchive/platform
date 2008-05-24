@@ -72,5 +72,5 @@ $options  = array(array('label'=> 'Happy', 'image' => 'http://fbplatform.mancrus
 
 $res = $fb->api_client->profile_setInfoOptions($options, 'Good Smilies');
 
-$file = fopen('../constants.php', 'w');
+$file = fopen('constants.php', 'w');
 fwrite($file, $constants);
