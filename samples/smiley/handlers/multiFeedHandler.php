@@ -12,7 +12,7 @@ include_once LIB_PATH.'feed.php';
 $picked = $_POST['picked'];
 
 $moods  = get_other_moods();
-$canvas_url = $fb->get_facebook_url('apps') . APP_SUFFIX;
+$canvas_url = $fb->get_facebook_url('apps') . '/' . APP_SUFFIX;
 if ($picked != -1) {
   $feed = array('template_id' =>  FEED_STORY_2,
                 'template_data' => array('emote'       => $moods[$picked][1],
