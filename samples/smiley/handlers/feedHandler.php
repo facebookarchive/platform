@@ -12,7 +12,7 @@ $fb     = get_fb();
 // The smiley that was chosen
 $picked = $_POST['picked'];
 $moods  = get_moods();
-$canvas_url = $fb->get_facebook_url('apps') . APP_SUFFIX;
+$canvas_url = $fb->get_facebook_url('apps') . '/' . APP_SUFFIX;
 
 
 if ($picked != -1) {
