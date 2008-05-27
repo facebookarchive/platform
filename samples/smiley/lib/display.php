@@ -1,7 +1,9 @@
 <?php
 
-define(CSS_VERSION, '20');
-define(JS_VERSION,  '20');
+
+// increment these when you change css or js files
+define('CSS_VERSION', '20');
+define('JS_VERSION',  '20');
 
 function render_bool($res) {
   if ($res) {
