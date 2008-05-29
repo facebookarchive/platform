@@ -22,6 +22,7 @@ if ($_POST['method']=='publisher_getFeedStory') {
 
   $feed = array('template_id' => FEED_STORY_1,
                 'template_data' => array('mood' => $moods[$picked][0],
+                                         'emote'=> $moods[$picked][1],
                                          'images' => $images,
                                          'mood_src' => $image)
                 );
