@@ -105,7 +105,7 @@ function get_user_profile_box($mood) {
   }
 
   </style>
-  <h2>We are pleased to announce that <fb:name useyou="false" uid="4842"/> is feeling:</h2>
+  <h2>We are pleased to announce that <fb:name useyou="false" uid="profileowner" /> is feeling:</h2>
   <div class="smile"><div class="smiley">'.$mood[1].'</div><div >'.$mood[0].'</div></div>';
 
 }
