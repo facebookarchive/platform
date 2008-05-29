@@ -5,9 +5,8 @@ include_once LIB_PATH.'display.php';
 
 $smile = $_GET['smile'];
 $moods = get_moods();
-error_log($smile);
-echo render_inline_style();
 
+echo render_inline_style();
 echo '<div class="big_box"><div class="big_smiley">'
      .    $moods[$smile][1]
      .  '</div><div>'

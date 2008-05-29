@@ -12,7 +12,7 @@ $fb     = get_fb();
 // The smiley that was chosen
 $picked = $_POST['picked'];
 $moods  = get_moods();
-$canvas_url = $fb->get_facebook_url('apps') . '/' . APP_SUFFIX;
+$canvas_url = $fb->get_facebook_url('apps') . '/' . APP_SUFFIX . '/mysmilies.php';
 
 
 if ($picked != -1) {
@@ -27,7 +27,8 @@ if ($picked != -1) {
   error_log($moods[$picked][0]);
   error_log($picked);
   $feed = array('template_id' => FEED_STORY_1,
-                'template_data' => array('mood' => $moods[$picked][0],
+                'template_data' => array('mood'  => $moods[$picked][0],
+                                         'emote' => $moods[$picked][1],
                                          'images' => $images,
                                          'mood_src' => $image)
                 );
