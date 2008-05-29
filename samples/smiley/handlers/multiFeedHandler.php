@@ -10,7 +10,7 @@ include_once LIB_PATH.'display.php';
 include_once LIB_PATH.'feed.php';
 
 $picked = $_POST['picked'];
-
+$fb     = get_fb();
 $moods  = get_other_moods();
 $canvas_url = $fb->get_facebook_url('apps') . '/' . APP_SUFFIX;
 if ($picked != -1) {
