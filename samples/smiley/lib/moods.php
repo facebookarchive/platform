@@ -14,7 +14,7 @@ function get_moods() {
                array('Cool'        , 'B-|'),
                array('Emo'         , '//.-'),
                array('Surprised'   , '=O'),
-               array('Laughing'    , 'X-D'),
+               array('Laughing'    , 'XD'),
                array('Vampire'     , ': ['),
                array('Evil'        , '>:|')
                );
