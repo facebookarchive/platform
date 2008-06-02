@@ -1,0 +1,14 @@
+#!/bin/sh
+mkdir -p ../../thrift/packages/api_10/
+mkdir -p ../../../html/api/1.0/
+
+rm -fr gen-php
+thrift -xsd -phpl -phpa -rest api_10.thrift
+cp gen-php/*.php ../../thrift/packages/api_10/
+cp gen-xsd/api_10_xsd.php ../../thrift/packages/api_10/
+cp gen-xsd/FacebookApi10.xsd ../../../html/api/1.0/facebook.xsd
+
+rm -rf gen-php
+rm -rf gen-xsd
+
+

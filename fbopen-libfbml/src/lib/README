@@ -1,0 +1,57 @@
+/******BEGIN LICENSE BLOCK*******
+  *
+  * Common Public Attribution License Version 1.0.
+  *
+  * The contents of this file are subject to the Common Public Attribution
+  * License Version 1.0 (the "License") you may not use this file except in
+  * compliance with the License. You may obtain a copy of the License at
+  * http://developers.facebook.com/fbopen/cpal.html. The License is based
+  * on the Mozilla Public License Version 1.1 but Sections 14 and 15 have
+  * been added to cover use of software over a computer network and provide
+  * for limited attribution for the Original Developer. In addition, Exhibit A
+  * has been modified to be consistent with Exhibit B.
+  * Software distributed under the License is distributed on an "AS IS" basis,
+  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  * for the specific language governing rights and limitations under the License.
+  * The Original Code is Facebook Open Platform.
+  * The Original Developer is the Initial Developer.
+  * The Initial Developer of the Original Code is Facebook, Inc.  All portions
+  * of the code written by Facebook, Inc are
+  * Copyright 2006-2008 Facebook, Inc. All Rights Reserved.
+  *
+  *
+  ********END LICENSE BLOCK*********/
+
+Instuctions on how to build Mozilla .a libraries
+================================================
+
+1. Download and install packages in this order, as they have dependencies:
+
+   - pkg-config-0.20.tar.gz
+   - glib-2.14.6.tar.gz
+   - atk-1.9.1.tar.bz2
+   - freetype-2.3.4.tar.gz
+   - fontconfig-2.3.97.tar.gz
+   - cairo-1.2.6.tar.gz
+   - tiff-3.7.4.tar.gz
+   - pango-1.18.4.tar.gz
+   - gtk+-2.10.13.tar.gz
+   - libIDL-0.8.8.tar.gz
+
+2. Download and install Mozilla Firefox 2.0.0.4
+
+   firefox-2.0.0.4-source.tar.bz2
+
+3. When make completes, there will be .h files compiled from IDL files, and
+   there will be .a files compiled in different sub-directories. A "find -name"
+   can easily collect them and flatten them into one single directory like
+   include/ and lib/ libfbml has. As time of writing this, ALL .h files are
+   collected, as there is no harm having extra unincluded header files, but
+   only referenced .a libraries are collected. See libfbml/Makefile for the
+   list of .a libraries that are needed.
+
+4. These are directly copied directories and sources are modified since:
+
+   html/  <=  mozilla/parser/htmlparser/src
+   css/   <=  mozilla/layout/style
+   js/    <=  mozilla/js/src

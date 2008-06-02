@@ -1,0 +1,416 @@
+/******BEGIN LICENSE BLOCK*******
+*
+* Common Public Attribution License Version 1.0.
+*
+* The contents of this file are subject to the Common Public Attribution
+* License Version 1.0 (the "License") you may not use this file except in
+* compliance with the License. You may obtain a copy of the License at
+* http://developers.facebook.com/fbopen/cpal.html. The License is based
+* on the Mozilla Public License Version 1.1 but Sections 14 and 15 have
+* been added to cover use of software over a computer network and provide
+* for limited attribution for the Original Developer. In addition, Exhibit A
+* has been modified to be consistent with Exhibit B.
+* Software distributed under the License is distributed on an "AS IS" basis,
+* WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+* for the specific language governing rights and limitations under the License.
+* The Original Code is Facebook Open Platform.
+* The Original Developer is the Initial Developer.
+* The Initial Developer of the Original Code is Facebook, Inc.  All portions
+* of the code written by Facebook, Inc are
+* Copyright 2006-2008 Facebook, Inc. All Rights Reserved.
+*
+*
+********END LICENSE BLOCK*********/
+
+-- MySQL dump 10.9
+--
+-- Host: YOUR_DB_HOST    Database: fbopentest
+-- ------------------------------------------------------
+-- Server version	4.1.12-log
+
+--- FBOPEN:SETUP - replace YOUR_APP_SERVER_URL in this data with the URL 
+--- rooted at the html directory in the source distribution,
+--- to enable the fbopentest application included
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+CREATE DATABASE fbopentest;
+
+USE fbopentest;
+
+--
+-- Table structure for table `affiliations`
+--
+
+DROP TABLE IF EXISTS `affiliations`;
+CREATE TABLE `affiliations` (
+  `uid` int(11) NOT NULL default '0',
+  `nid` int(11) NOT NULL default '0',
+  `name` varchar(100) NOT NULL default '0',
+  `type` varchar(20) NOT NULL default '0',
+  `status` varchar(20) NOT NULL default '0',
+  `year` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`uid`,`nid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Contains the network affiliations for each user or object';
+
+--
+-- Dumping data for table `affiliations`
+--
+
+
+/*!40000 ALTER TABLE `affiliations` DISABLE KEYS */;
+LOCK TABLES `affiliations` WRITE;
+INSERT INTO `affiliations` VALUES (1240079,23456,'Facebook Developers','work','',2007),(1240077,12345,'College University','college','Alumnus/Alumna',2003),(1240077,23456,'Facebook Developers','work','',2008);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `affiliations` ENABLE KEYS */;
+
+--
+-- Table structure for table `app_perms`
+--
+
+DROP TABLE IF EXISTS `app_perms`;
+CREATE TABLE `app_perms` (
+  `application_id` bigint(20) NOT NULL default '0',
+  `user_id` bigint(20) NOT NULL default '0',
+  `installed` tinyint(1) NOT NULL default '0',
+  `authorized` tinyint(1) NOT NULL default '0',
+  `installed_to_profile` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`application_id`,`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `app_perms`
+--
+
+
+/*!40000 ALTER TABLE `app_perms` DISABLE KEYS */;
+LOCK TABLES `app_perms` WRITE;
+INSERT INTO `app_perms` VALUES (1234567,1240078,1,1,1),(1234567,1240079,0,1,1),(1234567,1240080,0,0,1),(1234567,1240077,1,1,1);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `app_perms` ENABLE KEYS */;
+
+--
+-- Table structure for table `application`
+--
+
+DROP TABLE IF EXISTS `application`;
+CREATE TABLE `application` (
+  `application_id` bigint(20) unsigned NOT NULL default '0',
+  `apikey` varchar(32) NOT NULL default '',
+  `secret` varchar(32) NOT NULL default '',
+  `user_id` int(11) NOT NULL default '0',
+  `icon_url` varchar(100) NOT NULL default '',
+  `logo_url` varchar(100) NOT NULL default '',
+  `company_name` varchar(50) NOT NULL default '',
+  `application_name` varchar(50) NOT NULL default '',
+  `callback_url` varchar(100) NOT NULL default '',
+  `post_install_url` varchar(100) default NULL,
+  `edit_url` varchar(100) default NULL,
+  `dashboard_url` varchar(100) default NULL,
+  `uninstall_url` varchar(100) default NULL,
+  `ip_list` text,
+  `email` varchar(100) NOT NULL default '',
+  `description` text,
+  `use_iframe` tinyint(1) NOT NULL default '0',
+  `desktop` tinyint(1) NOT NULL default '0',
+  `is_mobile` tinyint(4) NOT NULL default '0',
+  `default_fbml` text NOT NULL,
+  `default_column` tinyint(1) NOT NULL default '0',
+  `message_url` varchar(100) default NULL,
+  `message_action` varchar(100) default NULL,
+  `about_url` varchar(100) default NULL,
+  `private_install` tinyint(1) NOT NULL default '0',
+  `installable` tinyint(4) NOT NULL default '0',
+  `privacy_url` varchar(100) default NULL,
+  `help_url` varchar(100) default NULL,
+  `tos_url` varchar(100) default NULL,
+  `dev_mode` tinyint(1) NOT NULL default '0',
+  `preload_fql` text,
+  `contact_email` varchar(100) NOT NULL default '',
+  `fbframe_id` bigint(20) unsigned NOT NULL default '0',
+  `fbframe_name` varchar(50) NOT NULL default '',
+  PRIMARY KEY  (`application_id`),
+  KEY `apikey` (`apikey`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `application`
+--
+
+
+/*!40000 ALTER TABLE `application` DISABLE KEYS */;
+LOCK TABLES `application` WRITE;
+INSERT INTO `application` VALUES (1234567,'0123456789abcdef0123456789abcdef','fedbca9876543210fedcba9876543210',1240077,'//static.facebook.com/images/icons/hidden.gif?1173653025','//static.facebook.com/gpic/missing_app_icon.gif?1180043296','Facebook Open Platform','FBOPENTEST','http://YOUR_APP_SERVER_URL/fbopentest/','http://YOUR_APP_SERVER_URL/fbopentest/postadd.php','http://YOUR_APP_SERVER_URL/fbopentest/edit.php','http://YOUR_APP_SERVER_URL/fbopentest/sidenav.php','http://YOUR_APP_SERVER_URL/fbopentest/postremove.php',NULL,'nobody@nowhere.com','Facebook Open Platform test application.  Enjoy.',0,0,0,'Hello at UTC1206402649',0,NULL,NULL,NULL,0,0,'http://YOUR_APP_SERVER_URL/fbopentest/privacy.php','http://YOUR_APP_SERVER_URL/fbopentest/help.php','http://YOUR_APP_SERVER_URL/fbopentest/mytos.php',1,NULL,'nobody@nowhere.com',1234567,'fbopentest');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `application` ENABLE KEYS */;
+
+--
+-- Table structure for table `auth_token`
+--
+
+DROP TABLE IF EXISTS `auth_token`;
+CREATE TABLE `auth_token` (
+  `application_id` bigint(20) NOT NULL default '0',
+  `auth_token` varchar(50) NOT NULL default '0',
+  `session_key` varchar(50) default NULL,
+  `expire_time` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`application_id`,`auth_token`),
+  KEY `appid_expire` (`application_id`,`expire_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `auth_token`
+--
+
+
+/*!40000 ALTER TABLE `auth_token` DISABLE KEYS */;
+LOCK TABLES `auth_token` WRITE;
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `auth_token` ENABLE KEYS */;
+
+--
+-- Table structure for table `education`
+--
+
+DROP TABLE IF EXISTS `education`;
+CREATE TABLE `education` (
+  `uid` int(11) NOT NULL default '0',
+  `name` varchar(100) NOT NULL default '',
+  `year` int(11) NOT NULL default '0',
+  `degree` varchar(100) NOT NULL default '',
+  `concentration1` varchar(100) NOT NULL default '',
+  `concentration2` varchar(100) NOT NULL default '',
+  `concentration3` varchar(100) NOT NULL default ''
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='stores the education history of the user';
+
+--
+-- Dumping data for table `education`
+--
+
+
+/*!40000 ALTER TABLE `education` DISABLE KEYS */;
+LOCK TABLES `education` WRITE;
+INSERT INTO `education` VALUES (1240077,'College University',2003,'BA','Applied Mathematics','Computer Science',''),(1240077,'Tech State',2004,'MS','French','',''),(1240078,'College University',2003,'BA','Applied Mathematics','Computer Science',''),(1240078,'Tech State',2004,'MS','French','',''),(1240079,'College University',2003,'BA','Applied Mathematics','Computer Science',''),(1240079,'Tech State',2004,'MS','French','',''),(1240080,'College University',2003,'BA','Applied Mathematics','Computer Science',''),(1240080,'Tech State',2004,'MS','French','','');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `education` ENABLE KEYS */;
+
+--
+-- Table structure for table `friend`
+--
+
+DROP TABLE IF EXISTS `friend`;
+CREATE TABLE `friend` (
+  `user1` int(10) NOT NULL default '0',
+  `user2` int(10) NOT NULL default '0',
+  PRIMARY KEY  (`user1`,`user2`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `friend`
+--
+
+
+/*!40000 ALTER TABLE `friend` DISABLE KEYS */;
+LOCK TABLES `friend` WRITE;
+INSERT INTO `friend` VALUES (1240078,1240079),(1240078,1240077),(1240079,1240078),(1240079,1240077),(1240080,1240077),(1240077,1240078),(1240077,1240079),(1240077,1240080);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `friend` ENABLE KEYS */;
+
+--
+-- Table structure for table `friend_list`
+--
+
+DROP TABLE IF EXISTS `friend_list`;
+CREATE TABLE `friend_list` (
+  `flid` bigint(20) NOT NULL default '0',
+  `owner` int(11) NOT NULL default '0',
+  `name` varchar(40) NOT NULL default '0',
+  PRIMARY KEY  (`flid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `friend_list`
+--
+
+
+/*!40000 ALTER TABLE `friend_list` DISABLE KEYS */;
+LOCK TABLES `friend_list` WRITE;
+INSERT INTO `friend_list` VALUES (98765,1240077,'A List of One'),(123456,1240077,'Student Underground');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `friend_list` ENABLE KEYS */;
+
+--
+-- Table structure for table `friend_list_member`
+--
+
+DROP TABLE IF EXISTS `friend_list_member`;
+CREATE TABLE `friend_list_member` (
+  `flid` bigint(20) NOT NULL default '0',
+  `uid` bigint(20) NOT NULL default '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `friend_list_member`
+--
+
+
+/*!40000 ALTER TABLE `friend_list_member` DISABLE KEYS */;
+LOCK TABLES `friend_list_member` WRITE;
+INSERT INTO `friend_list_member` VALUES (98765,1240078),(123456,1240078),(123456,1240079),(123456,1240080);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `friend_list_member` ENABLE KEYS */;
+
+--
+-- Table structure for table `info`
+--
+
+DROP TABLE IF EXISTS `info`;
+CREATE TABLE `info` (
+  `uid` bigint(20) NOT NULL default '0',
+  `about_me` text NOT NULL,
+  `activities` text NOT NULL,
+  `birthday` varchar(20) NOT NULL default '',
+  `books` text NOT NULL,
+  `current_location_city` text NOT NULL,
+  `current_location_state` text NOT NULL,
+  `current_location_country` text NOT NULL,
+  `current_location_zip` int(11) NOT NULL default '0',
+  `first_name` varchar(255) default NULL,
+  `hometown_location_city` text NOT NULL,
+  `hometown_location_state` text NOT NULL,
+  `hometown_location_country` text NOT NULL,
+  `hometown_location_zip` int(11) NOT NULL default '0',
+  `hs1_id` int(11) NOT NULL default '0',
+  `hs1_name` text NOT NULL,
+  `hs2_id` int(11) default NULL,
+  `hs2_name` text,
+  `grad_year` int(11) NOT NULL default '0',
+  `interests` text NOT NULL,
+  `last_name` varchar(20) NOT NULL default '',
+  `meeting_for` varchar(255) NOT NULL default '',
+  `meeting_sex` varchar(20) NOT NULL default '',
+  `movies` text NOT NULL,
+  `music` text NOT NULL,
+  `name` varchar(100) NOT NULL default '',
+  `notes_count` int(11) NOT NULL default '0',
+  `pic` varchar(255) NOT NULL default '',
+  `pic_big` varchar(255) NOT NULL default '',
+  `pic_small` varchar(255) NOT NULL default '',
+  `pic_square` varchar(255) NOT NULL default '',
+  `political` varchar(20) NOT NULL default '',
+  `profile_update_time` int(14) default '0',
+  `quotes` text NOT NULL,
+  `relationship_status` varchar(20) NOT NULL default '',
+  `religion` varchar(255) NOT NULL default '',
+  `sex` varchar(20) NOT NULL default '0',
+  `significant_other_id` bigint(20) NOT NULL default '0',
+  `status_message` text NOT NULL,
+  `status_time` int(11) NOT NULL default '0',
+  `timezone` int(2) NOT NULL default '0',
+  `tv` text NOT NULL,
+  `wall_count` int(11) NOT NULL default '1',
+  PRIMARY KEY  (`uid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=0;
+
+--
+-- Dumping data for table `info`
+--
+
+
+/*!40000 ALTER TABLE `info` DISABLE KEYS */;
+LOCK TABLES `info` WRITE;
+INSERT INTO `info` VALUES (1240078,'This field perpetuates the glorification of the ego.  Also, it has a character limit.','running,biking','11-03-1980','The Brothers K, GEB, Ken Wilber, Zen and the Art, Fitzgerald','San Francisco','California','United States',94110,'John','York','Pennsylvania','United States',94110,2035,'Kennedy High School',0,'',1999,'coffee, computers, writing','Smith','Friendship,Dating','Male','Tommy Boy, Billy Madison, My Blue Heaven, Fight Club, Dirty Work','New Found Glory, Daft Punk, Weezer','John Smith',123,'http://www.picturesite.com/pic.jpg','http://www.picturesite.com/big.jpg','http://www.picturesite.com/small.jpg','http://www.picturesite.com/square.jpg','Moderate',123456,'What, me worry?  -- Alfred E. Neuman','In A Relationship','','Female',1240079,'is having fun making dummy data.',123456,-8,' cf. Bob Trahan',123456),(1240079,'This field perpetuates the glorification of the ego.  Also, it has a character limit.','running,biking','11-03-1980','The Brothers K, GEB, Ken Wilber, Zen and the Art, Fitzgerald','San Francisco','California','United States',94110,'Roger','York','Pennsylvania','United States',94110,2035,'Kennedy High School',0,'',1999,'coffee, computers, writing','Jones','Friendship,Dating','Male','Tommy Boy, Billy Madison, My Blue Heaven, Fight Club, Dirty Work','New Found Glory, Daft Punk, Weezer','Roger Jones',123,'http://www.picturesite.com/pic.jpg','http://www.picturesite.com/big.jpg','http://www.picturesite.com/small.jpg','http://www.picturesite.com/square.jpg','Moderate',123456,'What, me worry?  -- Alfred E. Neuman','In A Relationship','','Female',1240079,'is having fun making dummy data.',123456,-8,' cf. Bob Trahan',123456),(1240080,'This field perpetuates the glorification of the ego.  Also, it has a character limit.','running,biking','11-03-1980','The Brothers K, GEB, Ken Wilber, Zen and the Art, Fitzgerald','San Francisco','California','United States',94110,'John','York','Pennsylvania','United States',94110,2035,'Kennedy High School',0,'',1999,'coffee, computers, writing','Smith','Friendship,Dating','Male','Tommy Boy, Billy Madison, My Blue Heaven, Fight Club, Dirty Work','New Found Glory, Daft Punk, Weezer','John Smith',123,'http://www.picturesite.com/pic.jpg','http://www.picturesite.com/big.jpg','http://www.picturesite.com/small.jpg','http://www.picturesite.com/square.jpg','Moderate',123456,'What, me worry?  -- Alfred E. Neuman','In A Relationship','','Female',1240079,'is having fun making dummy data.',123456,-8,' cf. Bob Trahan',123456),(1240077,'This field perpetuates the glorification of the ego.  Also, it has a character limit.','running,biking','11-03-1980','The Brothers K, GEB, Ken Wilber, Zen and the Art, Fitzgerald','San Francisco','California','United States',94110,'Mary','York','Pennsylvania','United States',94110,2035,'Kennedy High School',0,'',1999,'coffee, computers, writing','Smith','Friendship,Dating','Male','Tommy Boy, Billy Madison, My Blue Heaven, Fight Club, Dirty Work','New Found Glory, Daft Punk, Weezer','Mary Smith',123,'http://www.picturesite.com/pic.jpg','http://www.picturesite.com/big.jpg','http://www.picturesite.com/small.jpg','http://www.picturesite.com/square.jpg','Moderate',123456,'What, me worry?  -- Alfred E. Neuman','In A Relationship','','Female',1240079,'is having fun making dummy data.',123456,-8,' cf. Bob Trahan',123456);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `info` ENABLE KEYS */;
+
+--
+-- Table structure for table `profile_fbml`
+--
+
+DROP TABLE IF EXISTS `profile_fbml`;
+CREATE TABLE `profile_fbml` (
+  `profile_id` bigint(20) NOT NULL default '0',
+  `app_id` bigint(11) NOT NULL default '0',
+  `fbml` text NOT NULL,
+  PRIMARY KEY  (`profile_id`,`app_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `profile_fbml`
+--
+
+
+/*!40000 ALTER TABLE `profile_fbml` DISABLE KEYS */;
+LOCK TABLES `profile_fbml` WRITE;
+INSERT INTO `profile_fbml` VALUES (1240077,1234567,'Hello!  Here\'s some fbml: <fb:profile-pic uid=\"1240077\"/> at UTC 1206402649');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `profile_fbml` ENABLE KEYS */;
+
+--
+-- Table structure for table `session`
+--
+
+DROP TABLE IF EXISTS `session`;
+CREATE TABLE `session` (
+  `uid` int(11) NOT NULL default '0',
+  `session_key` varchar(40) NOT NULL default '',
+  `session_timeout` int(11) NOT NULL default '0',
+  `session_secret` varchar(40) NOT NULL default '',
+  `key_create_time` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`uid`,`session_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `session`
+--
+
+
+/*!40000 ALTER TABLE `session` DISABLE KEYS */;
+LOCK TABLES `session` WRITE;
+INSERT INTO `session` VALUES (1240077,'acacbdbd010123237878dede-1240077',31536000,'',1206207088);
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `session` ENABLE KEYS */;
+
+--
+-- Table structure for table `work_history`
+--
+
+DROP TABLE IF EXISTS `work_history`;
+CREATE TABLE `work_history` (
+  `uid` int(11) NOT NULL default '0',
+  `city` varchar(40) default '',
+  `state` varchar(40) default '',
+  `country` varchar(40) default '',
+  `company_name` varchar(255) NOT NULL default '',
+  `position` varchar(255) NOT NULL default '',
+  `description` text NOT NULL,
+  `start_date` varchar(20) NOT NULL default '',
+  `end_date` varchar(20) NOT NULL default ''
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='the work history of a user, replaces info_professional';
+
+--
+-- Dumping data for table `work_history`
+--
+
+
+/*!40000 ALTER TABLE `work_history` DISABLE KEYS */;
+LOCK TABLES `work_history` WRITE;
+INSERT INTO `work_history` VALUES (1240077,'Seattle','Washington','United States','Boeing','Aerospace Engineer, Zepplin division','Kissing the sky','04-01-2006','09-06-2006'),(1240077,'Palo Alto','California','United States','Facebook','Software Engineer, Zepplin division','Being typecast','09-30-2006',''),(1240078,'Seattle','Washington','United States','Boeing','Aerospace Engineer, Zepplin division','Kissing the sky','04-01-2006','09-06-2006'),(1240078,'Palo Alto','California','United States','Facebook','Software Engineer, Zepplin division','Being typecast','09-30-2006',''),(1240079,'Seattle','Washington','United States','Boeing','Aerospace Engineer, Zepplin division','Kissing the sky','04-01-2006','09-06-2006'),(1240079,'Palo Alto','California','United States','Facebook','Software Engineer, Zepplin division','Being typecast','09-30-2006',''),(1240080,'Seattle','Washington','United States','Boeing','Aerospace Engineer, Zepplin division','Kissing the sky','04-01-2006','09-06-2006'),(1240080,'Palo Alto','California','United States','Facebook','Software Engineer, Zepplin division','Being typecast','09-30-2006','');
+UNLOCK TABLES;
+/*!40000 ALTER TABLE `work_history` ENABLE KEYS */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+

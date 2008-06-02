@@ -1,0 +1,169 @@
+Facebook Open Platform
+Facebook Copyright 2006 - 2008
+
+/******BEGIN LICENSE BLOCK*******
+  *
+  * Common Public Attribution License Version 1.0.
+  *
+  * The contents of this file are subject to the Common Public Attribution
+  * License Version 1.0 (the "License") you may not use this file except in
+  * compliance with the License. You may obtain a copy of the License at
+  * http://developers.facebook.com/fbopen/cpal.html. The License is based
+  * on the Mozilla Public License Version 1.1 but Sections 14 and 15 have
+  * been added to cover use of software over a computer network and provide
+  * for limited attribution for the Original Developer. In addition, Exhibit A
+  * has been modified to be consistent with Exhibit B.
+  * Software distributed under the License is distributed on an "AS IS" basis,
+  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  * for the specific language governing rights and limitations under the License.
+  * The Original Code is Facebook Open Platform.
+  * The Original Developer is the Initial Developer.
+  * The Initial Developer of the Original Code is Facebook, Inc.  All portions
+  * of the code written by Facebook, Inc are
+  * Copyright 2006-2008 Facebook, Inc. All Rights Reserved.
+  *
+  *
+  ********END LICENSE BLOCK*********/
+
+
+Overview:
+
+This package contains the basic functionality needed to implement and expose
+the Facebook platform, including support for the Facebook API, FQL, and FBML.
+This package is designed to be used in conjunction with the libfbml for Apache
+2.x package.
+
+This README contains the installation instructions for Facebook Open Platform.
+After following the install instructions, you should have:
+  * a working API server under YOUR_PLATFORM_SERVER_URL/api/resterver.php which responds to
+    all API calls in the documentation.
+  * a working application under YOUR_APP_SERVER_URL/fbopentest which tests each API call
+    in the documentation.
+  * a set of data in a dummy database which backs the return values of each API
+    call in the documentation.
+
+
+Dependencies:
+
+To run this setup, you will need:
+
+A. PHP 5 (downloadable from www.php.net)
+
+The PHP 5 code makes use of the following extensions, many of which come
+installed in the standard build or binary.  Check 'php -m' on your system to
+make sure they exist.
+
+Required standard PHP extensions: ctype, curl, date, iconv, json, mysql, pcre,
+simplexml, standard, xmlwriter
+
+Facebook PHP extensions:  fbml (from this release)
+
+Optional standard PHP extensions: The apc extension is referenced in lib/thrift
+but is not required.
+
+B. The Apache 1.3 web server (downloadable from http://www.apache.org/), or some
+web server which supports PHP 5, and inserts data similarly into these
+variables:
+  $_COOKIE
+  $_GET
+  $_POST
+  $_SERVER['argv']
+  $_SERVER['CONTENT_TYPE']
+  $_SERVER['HTTPS']
+  $_SERVER['HTTP_HOST']
+  $_SERVER['HTTP_USER_AGENT']
+  $_SERVER['PHP_ROOT']
+  $_SERVER['REMOTE_ADDR']
+  $_SERVER['REQUEST_URI']
+  $_SERVER['REQUEST_METHOD']
+
+C. MySQL version 4.1 or greater (downloadable from dev.mysql.com).
+
+D. [Optional] The Facebook Thrift binary (available at
+http://developers.facebook.com/thrift/).
+
+This allows you to easily set up new APIs, autogenerating much of the API
+request-handling code from an interface definition file.
+
+
+Configuration:
+
+To configure this package, first install the Facebook Open Platform PHP tree code
+under your intended server document root.
+
+Second, grep the codebase for any instances of "FBOPEN:SETUP".  These are mostly
+items like your URLs, database IPs, and so forth that you must edit for the
+code to run for the first time.  Instructions are provided at each instance.
+The main locations are the files:
+  ./lib/core/init.php
+  ./fbopen_data_dump
+  ./html/fbopentest/demo_libs/config.php
+
+There are also a number of FBJS test files under html/fbopentest that make AJAX
+calls and require you to enter your server URL there as well.
+
+Third, insert your dummy database content.  Run from this directory:
+   mysql -u root -h YOUR_DB_IP -p < fbopen_data_dump
+
+
+Running the Sample:
+
+Once you have followed the configuration steps above, you shoudl be able to run
+the application 'fbopentest' installed under your html root.  The file apitest.php
+runs all available API methods, and the file fbml.php outputs some FBML to be
+rendered by your system.  Both of these are run using the same data set up in
+step 4, as test user 1240077.
+
+A. Testing the API:
+
+To test the API, load the following URL from a browser:
+
+http://apps.example.com/canvas.php?fb_app_name=fbopentest&fb_user_id=1240077&fb_url_suffix=apitest.php%3Fparam1%3Dfoo%26param2%26param3%3Dbar
+
+This URL represents the expanded form of an URL like
+http://apps.example.com/SOME_APP/SOME_PATH?SOME_GET_STRING.
+
+If you want to support the shorter form of an application URL, Apache rewriting
+rules (or similar mechanisms) can be used to redirect this this to the canvas.php
+URL with the following arguments:
+  * fb_app_name -- a unique, human-readable name of the app.  Equivalent to
+    SOME_APP in the example above.
+  * fb_user_id -- the user id of a verified user on your site, authenticated
+    through some external mechanisms (e.g., cookies, etc.)
+  * fb_url_suffix -- a url_encoded version of SOME_PATH?SOME_GET_STRING in the
+    above example.  In the sample above, the string maps to query string
+    ?param1=foo&param2&param3=bar.
+
+B. Testing FBML:
+
+To test FBML, load the following URL from a browser:
+
+http://apps.example.com/canvas.php?fb_app_name=fbopentest&fb_user_id=1240077&fb_url_suffix=fbml.php
+
+C. Testing the API, FBML, and FBJS all at once:
+
+To test the API, FMBL, and FBJS all at once, you may load fbopentest/testall.php (http://apps.example.com/fbopentest/testall.php).
+
+This opens iframes to your canvas pages for the API (html/fbopentest/apitest.php), pages featuring FBML (html/fbopentest/fbml.php), and many pages featuring FBJS (the rest of html/fbopentest/, including fbmlplusfbjs.php, a simple FBML page augmented by a simple bit of FBJS).
+
+
+--- Notes ---
+
+Note that there are many occurrences of FBOPEN:NOTE in the tree.  These indicate decisions made here in moving Facebook's implementation to
+an open source implementation.  There are a number of omissions of functionality and assumptions NOT made about the uses to which the open 
+source API, FBML, and FBJS implementation can be put.  For instance:
+
+- Much of the JS normally returned with a Facebook Platform (apps.facebook.com) page is omitted, as it is domain-specific.
+- On the other hand, much of the JS returned may not be entirely relevant, or may be unreachable.
+- Image and static content caching is not implemented.  Normally, on encountering includes of external CSS and JS,
+  Facebook prefetches the content, sanitizes it, and stores that output under a link internal to the system.
+  This is not implenented in the open source version.
+  Thus, sanitizing FBJS and CSS only occurs if it is under an inline <script> or <style> tag, respectively.
+- No assumptions are made about the persistent login implementation of another platform.  www.facebook.com implements
+  persistent, verified login of a user using cookies.  However, cookies are not available on all platforms (think mobile),
+  so we do not rely on the ability to set browser cookies in the implementation.  Instances of this (e.g. html/fbml/fbjs_ajax_proxy.php)
+  are noted, and can be replaced with your own functionality.
+- Note that CSS is not included here, so styling is up to you.
+
+Happy hacking!
+
