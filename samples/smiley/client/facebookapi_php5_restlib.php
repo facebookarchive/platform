@@ -328,10 +328,15 @@ function toggleDisplay(id, type) {
             'page_actor_id' => $page_actor_id));
   }
 
-  public function &feed_registerTemplateBundle($one_line_story_template,
-                                               $short_story_template,
-                                               $full_story_template)
+  public function &feed_registerTemplateBundle($one_line_story_templates,
+                                               $short_story_templates,
+                                               $full_story_templates)
   {
+
+    if (isset($one_line_story_templates)) {
+      $one_line_story_templates = json_encode($one_line_story_templates);
+    }
+
     if (isset($short_story_template)) {
       $short_story_template = json_encode($short_story_template);
     }
@@ -341,8 +346,8 @@ function toggleDisplay(id, type) {
     }
 
     return $this->call_method('facebook.feed.registerTemplateBundle',
-                              array('one_line_story_template' => $one_line_story_template,
-                                    'short_story_template' => $short_story_template,
+                              array('one_line_story_templates' => $one_line_story_templates,
+                                    'short_story_templates' => $short_story_templates,
                                     'full_story_template' => $full_story_template));
   }
 

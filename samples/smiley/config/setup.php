@@ -41,26 +41,26 @@ $data = array('application_name'   => 'Smiley',
 $fb->api_client->admin_setAppProperties($data);
 
 // Set feed template 1 (for me)
-$one_line_story = '{actor} is feeling {mood} today';
-$short_story = array('template_title'   => '{actor} is feeling so {mood} today',
-                      'template_body'    => '{actor} just wanted to let you know that he is so {mood} today',
-                      'preferred_layout' => 1);
+$one_line_story = array('{*actor*} is feeling {*mood*} today');
+$short_story = array(array('template_title'   => '{*actor*} is feeling so {*mood*} today',
+                      'template_body'    => '{*actor*} just wanted to let you know that he is so {*mood*} today',
+                           'preferred_layout' => 1));
 
-$full_story = array('template_title' => '{actor} is feeling very {mood} today',
-                     'template_body'  => '<div style="padding: 10px;width : 200px;height : 200px;margin: auto;text-align: center;border: black 1px;cursor: pointer;border: black solid 2px;background: orange;color: black;text-decoration: none;"><div style="font-size: 60pt;font-weight: bold;padding: 40px;">{emote}</div><div style="font-size: 20px; font-weight:bold;">{mood}</div></div>');
+$full_story = array('template_title' => '{*actor*} is feeling very {*mood*} today',
+                     'template_body'  => '<div style="padding: 10px;width : 200px;height : 200px;margin: auto;text-align: center;border: black 1px;cursor: pointer;border: black solid 2px;background: orange;color: black;text-decoration: none;"><div style="font-size: 60pt;font-weight: bold;padding: 40px;">{*emote*}</div><div style="font-size: 20px; font-weight:bold;">{*mood*}</div></div>');
 
 
 $res = $fb->api_client->feed_registerTemplateBundle($one_line_story, $short_story, $full_story);
 $constants .= "define('FEED_STORY_1', '$res');\n";
 
 // Set feed template 2 (for them)
-$one_line_story = '{actor} just wanted to {emote} at {target} today';
-$short_story = array('template_title'   => '{actor} just wanted to {emote} at {target} today',
-                      'template_body'    => 'Always a great day to {emoteaction}',
-                      'preferred_layout' => 1);
+$one_line_story = array('{*actor*} just wanted to {*emote*} at {*target*} today');
+$short_story = array(array('template_title'   => '{*actor*} just wanted to {*emote*} at {*target*} today',
+                      'template_body'    => 'Always a great day to {*emoteaction*}',
+                           'preferred_layout' => 1));
 
-$full_story = array('template_title'   => '{actor} just wanted to {emote} at {target} today',
-                      'template_body'    => 'Always a great day to {emoteaction}',
+$full_story = array('template_title'   => '{*actor*} just wanted to {*emote*} at {*target*} today',
+                      'template_body'    => 'Always a great day to {*emoteaction*}',
                       'preferred_layout' => 1);
 
 
