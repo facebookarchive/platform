@@ -60,7 +60,7 @@ class FacebookRestClient {
     $this->batch_mode = FacebookRestClient::BATCH_MODE_DEFAULT;
     $this->last_call_id = 0;
     $this->call_as_apikey = '';
-    $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
+      $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
     if (!empty($GLOBALS['facebook_config']['debug'])) {
       $this->cur_id = 0;
       ?>
@@ -328,12 +328,14 @@ function toggleDisplay(id, type) {
             'page_actor_id' => $page_actor_id));
   }
 
-  public function &feed_registerTemplateBundle($one_line_story_template,
-                                               $short_story_template,
-                                               $full_story_template)
+  public function &feed_registerTemplateBundle($one_line_story_templates,
+                                               $short_story_templates = array(),
+                                               $full_story_template = null)
   {
-    if (isset($short_story_template)) {
-      $short_story_template = json_encode($short_story_template);
+    $one_line_story_templates = json_encode($one_line_story_templates);
+
+    if (!empty($short_story_templates)) {
+      $short_story_templates = json_encode($short_story_templates);
     }
 
     if (isset($full_story_template)) {
@@ -341,8 +343,8 @@ function toggleDisplay(id, type) {
     }
 
     return $this->call_method('facebook.feed.registerTemplateBundle',
-                              array('one_line_story_template' => $one_line_story_template,
-                                    'short_story_template' => $short_story_template,
+                              array('one_line_story_templates' => $one_line_story_templates,
+                                    'short_story_templates' => $short_story_templates,
                                     'full_story_template' => $full_story_template));
   }
 
@@ -357,8 +359,14 @@ function toggleDisplay(id, type) {
                               array('template_bundle_id' => $template_bundle_id));
   }
 
+  public function &feed_deactivateTemplateBundleByID($template_bundle_id)
+  {
+    return $this->call_method('facebook.feed.deactivateTemplateBundleByID',
+                              array('template_bundle_id' => $template_bundle_id));
+  }
+
   public function &feed_publishUserAction($template_bundle_id, $template_data,
-                                          $target_ids, $body_general)
+                                          $target_ids=array(), $body_general='')
   {
     return $this->call_method('facebook.feed.publishUserAction',
                               array('template_bundle_id' => $template_bundle_id,
@@ -1689,6 +1697,25 @@ function toggleDisplay(id, type) {
                                     'metrics' => json_encode($metrics)));
   }
 
+  /**
+   * Returns values for the specified metrics for the current
+   * application, in the given time range.  The metrics are collected
+   * for fixed-length periods, and the times represent midnight at
+   * the end of each period.
+   *
+   * @param start_time  unix time for the start of the range
+   * @param end_time    unix time for the end of the range
+   * @param period      number of seconds in the desired period
+   * @param metrics     list of metrics to look up
+   * @return            a list of the values for those metrics
+   */
+  public function &admin_getMetrics($start_time, $end_time, $period, $metrics) {
+    return $this->call_method('admin.getMetrics',
+                              array('start_date' => $start_time,
+                                    'end_date' => $end_time,
+                                    'period' => $period,
+                                    'metrics' => json_encode($metrics)));
+  }
 
 
 
@@ -1766,7 +1793,6 @@ function toggleDisplay(id, type) {
   public function post_request($method, $params) {
 
     $post_string = $this->create_post_string($method, $params);
-
 
     if (function_exists('curl_init')) {
       // Use CURL if installed...
