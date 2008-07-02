@@ -1,4 +1,5 @@
 <?php
+// Copyright 2004-2008 Facebook. All Rights Reserved.
 //
 // +---------------------------------------------------------------------------+
 // | Facebook Platform PHP5 client                                             |
