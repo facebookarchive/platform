@@ -71,8 +71,7 @@ function get_sample_info() {
                       array('field'=> 'Bad',
                             'items'=>
                             array(array('label'=> 'Evil',
-                                        'link'=>'http://www.evil.com'))),
-                      array('field'=>'Terrible'));
+                                        'link'=>'http://www.evil.com'))));
 }
 
 function get_user_profile_box($mood) {
