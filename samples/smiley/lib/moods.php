@@ -101,10 +101,12 @@ function get_user_profile_box($mood) {
   background: orange;
   margin-left: 32px;
   margin-top: 30px;
+  margin-bottom: 20px;
   }
 
   </style>
   <h2>We are pleased to announce that <fb:name useyou="false" uid="profileowner" /> is feeling:</h2>
-  <div class="smile"><div class="smiley">'.$mood[1].'</div><div >'.$mood[0].'</div></div>';
+  <div class="smile"><div class="smiley">'.$mood[1].'</div><div >'.$mood[0].'</div></div>
+  <br /><p><a href="http://apps.facebook.com/mysmiley/" requirelogin=1>Visit Smiley</a></p>';
 
 }
