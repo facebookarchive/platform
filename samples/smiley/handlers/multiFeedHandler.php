@@ -24,7 +24,7 @@ if ($picked != -1) {
                                     ));
 
 } else {
-  $data = array('errorCode'=> 1,
+  $data = array('errorCode'=> FACEBOOK_API_VALIDATION_ERROR,
               'errorTitle'=> 'No mood selected',
               'errorMessage'=>'Please select a smiley.');
 }
