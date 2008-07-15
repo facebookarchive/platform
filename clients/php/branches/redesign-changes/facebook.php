@@ -158,7 +158,7 @@ class Facebook {
       // get a frame within a frame.
       echo "<script type=\"text/javascript\">\ntop.location.href = \"$url\";\n</script>";
     } else {
-      http_header('Location', $url);
+      header('Location', $url);
     }
     exit;
   }
