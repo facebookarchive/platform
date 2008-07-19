@@ -20,6 +20,9 @@ if ($picked != -1) {
   $old = $fb->api_client->data_getUserPreference(0);
   $fb->api_client->data_setUserPreference(0, '' . $picked . $old);
 
+  $old_count = $fb->api_client->data_getUserPreference(2);
+  $fb->api_client->data_setUserPreference(2, $old_count ? $old_count+1 : 1);
+
   $image = IMAGE_LOCATION . '/smile'.$picked.'.jpg';
 
   $images = array(array('src'  => $image,

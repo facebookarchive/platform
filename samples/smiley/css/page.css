@@ -64,6 +64,11 @@ h2 {
  text-align: center;
 }
 
+h3 {
+ font-size: 12pt;
+ text-align: center;
+}
+
 #centerbutton {
   margin-left: 42%;
   margin-right: auto;

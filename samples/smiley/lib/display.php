@@ -30,7 +30,8 @@ function render_header($selected ='Home') {
 
   $header .=
     '<fb:tabs>'
-    .'<fb:tab-item title="Home"  href="index.php" selected="' . ($selected == 'Home') .'" />'
+    .'<fb:tab-item title="Home"  href="index.php" '
+      .'selected="' . ($selected == 'Home') .'" />'
     .'<fb:tab-item title="My Smilies"  href="mysmilies.php" selected="' . ($selected == 'Mine') . '" />'
     .'<fb:tab-item title="New Smiley"  href="newsmiley.php" selected="' . ($selected == 'New') . '" />'
     .'<fb:tab-item title="Send Smiley"  href="sendSmiley.php" selected="' . ($selected == 'Send') . '" />'

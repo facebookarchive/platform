@@ -33,7 +33,8 @@ if ($is_set != 'set') {
 echo render_header();
 
 echo '<h2>Welcome to Smiley!</h2>';
-echo '<p>Smiley is a sample app created demonstrate the many platform integration points of the Facebook profile.</p>';
+echo '<p>Smiley is a sample app created to demonstrate the many '
+    .'platform integration points of the Facebook profile.</p>';
 
 // Profile box
 echo 'Here is an button for adding a  box to your profile. This will go away if you add the box:';

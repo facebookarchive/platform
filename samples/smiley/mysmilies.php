@@ -34,7 +34,8 @@ echo '<h2>'
 
 $user_name = '<fb:name useyou="false" uid="'.$fb->user.'"/>';
 echo '<h3 style="padding: 7px 0px">'
-   . 'We are pleased to announce that ' . $user_name . ' has been feeling:'
+   . 'We are pleased to announce that ' . $user_name
+   . ' has been feeling:'
    . '</h3>';
 echo '<div style="overflow:hidden"><div class="past">';
 
