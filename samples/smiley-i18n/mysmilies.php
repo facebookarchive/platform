@@ -27,15 +27,19 @@ if (!isset($_POST['is_tab'])) {
 
 
 echo '<div style="text-align: center">';
-$pos_name = '<fb:name firstnameonly="true" useyou="false" possessive="true" linked="false" uid="'.$user.'"/>';
 echo '<h2>'
-   .   $pos_name.' Smilies'
+   .   '<fb:intl desc="Page header for list of someone\'s smilies">'
+   .     '<fb:name firstnameonly="true" useyou="false" possessive="true" '
+   .              'linked="false" uid="'.$user.'"/>'
+   .     ' Smilies'
+   .   '</fb:intl>'
    . '</h2>';
 
 $user_name = '<fb:name useyou="false" uid="'.$fb->user.'"/>';
 echo '<h3 style="padding: 7px 0px">'
-   . 'We are pleased to announce that ' . $user_name
-   . ' has been feeling:'
+   .   '<fb:intl>'
+   .     'We are pleased to announce that ' . $user_name . ' has been feeling:'
+   .   '</fb:intl>'
    . '</h3>';
 echo '<div style="overflow:hidden"><div class="past">';
 
@@ -46,12 +50,17 @@ for ($i =0; $i< $n; $i++) {
   echo '<a class="box" href="smile.php?smile='.$v.'"><div class="smiley">'
      .    $mood[1]
      .  '</div><div>'
-     .    $mood[0]
+     .    '<fb:intl desc="Mood name for \'' . $mood[1] . '\'">'
+     .       $mood[0]
+     .    '</fb:intl>'
      .  '</div></a>';
 }
 echo '</div></div>';
 if (isset($_POST['is_tab'])) {
-  echo '<br><a href="http://apps.facebook.com/'.APP_SUFFIX.'" >Check out Smiley</a>';
+  echo '<br/>'
+     . '<a href="http://apps.facebook.com/'.APP_SUFFIX.'" >'
+     . '<fb:intl desc="Link to the Smiley application">Check out Smiley</fb:intl>'
+     . '</a>';
 }
 echo '</div>';
 

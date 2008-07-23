@@ -50,28 +50,37 @@ struct info_field {
 
 function get_sample_info() {
   return array(
-                      array('field' => 'Good Smilies',
-                            'items' =>
-                            array(array('label'=> 'Happy',
-                                        'image' => IMAGE_LOCATION . 'smile0.jpg',
-                                        'sublabel'=>'',
-                                        'description'=>'The original and still undefeated.',
-                                        'link'=>'http://www.facebook.com'),
-                                  array('label'=>'Indifferent',
-                                        'image'=> IMAGE_LOCATION . 'smile1.jpg', 'description'=>'meh...',
-                                        'link'=>'http://www.facebook.com'),
-                                  array('label'=>'Sad',
-                                        'image'=> IMAGE_LOCATION . 'smile2.jpg',
-                                        'description'=>'Oh my god! you killed my dog!',
-                                        'link'=>'http://www.facebook.com'),
-                                  array('label'=>'Cool',
-                                        'image'=> IMAGE_LOCATION . 'smile3.jpg',
-                                        'link'=>'http://www.facebook.com',
-                                        'description'=>'Yeah. whatever'))),
-                      array('field'=> 'Bad',
-                            'items'=>
-                            array(array('label'=> 'Evil',
-                                        'link'=>'http://www.evil.com'))));
+    array(
+      'field' => '<fb:intl desc="Header for list of pleasant smilies">Good Smilies</fb:intl>',
+      'items' =>
+        array(
+	  array(
+	    'label'=> '<fb:intl desc="Mood name for \':)\'">Happy</fb:intl>',
+            'image' => IMAGE_LOCATION . 'smile0.jpg',
+            'sublabel'=>'',
+            'description'=>'<fb:intl desc="Mood description for \':)\'">The original and still undefeated.</fb:intl>',
+            'link'=>'http://www.facebook.com'),
+          array(
+	    'label'=>'<fb:intl desc="Mood name for \':|\'">Indifferent</fb:intl>',
+            'image'=> IMAGE_LOCATION . 'smile1.jpg', 'description'=>'meh...',
+            'link'=>'http://www.facebook.com'),
+          array(
+	    'label'=>'<fb:intl desc="Mood name for \':(\'">Sad</fb:intl>',
+            'image'=> IMAGE_LOCATION . 'smile2.jpg',
+            'description'=>'<fb:intl desc="Mood description for \':(\'">Oh my god! you killed my dog!</fb:intl>',
+            'link'=>'http://www.facebook.com'),
+          array(
+	    'label'=>'<fb:intl desc="Mood name for \'B-|\'">Cool</fb:intl>',
+            'image'=> IMAGE_LOCATION . 'smile3.jpg',
+            'link'=>'http://www.facebook.com',
+            'description'=>'<fb:intl desc="Mood description for \'B-|\'">Yeah. whatever</fb:intl>'))),
+    array(
+      'field'=> '<fb:intl desc="Header for list of unpleasant smilies">Bad</fb:intl>',
+      'items'=>
+        array(
+	  array(
+	    'label'=> '<fb:intl desc="Mood name for \'&gt;:|\'">Evil</fb:intl>',
+            'link'=>'http://www.evil.com'))));
 }
 
 function get_user_profile_box($mood) {
@@ -105,8 +114,8 @@ function get_user_profile_box($mood) {
   }
 
   </style>
-  <h2>We are pleased to announce that <fb:name useyou="false" uid="profileowner" /> is feeling:</h2>
+  <h2><fb:intl>We are pleased to announce that <fb:name useyou="false" uid="profileowner" /> is feeling:</fb:intl></h2>
   <div class="smile"><div class="smiley">'.$mood[1].'</div><div >'.$mood[0].'</div></div>
-  <br /><p><a href="http://apps.facebook.com/mysmiley/" requirelogin=1>Visit Smiley</a></p>';
+  <br /><p><a href="http://apps.facebook.com/mysmiley/" requirelogin=1><fb:intl desc="Link to Smiley application">Visit Smiley</fb:intl></a></p>';
 
 }

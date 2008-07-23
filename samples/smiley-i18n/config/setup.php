@@ -11,6 +11,8 @@ $constants .= "define('CLIENT_PATH', MAIN_PATH . 'client/');\n";
 $constants .= "define('IMAGE_LOCATION', ROOT_LOCATION . 'images/');\n";
 
 
+define('LIB_PATH', $settings['MAIN_PATH'].'lib/');
+
 include_once $settings['MAIN_PATH'].'client/facebook.php';
 include_once $settings['MAIN_PATH'].'lib/display.php';
 $fb = new Facebook($settings['API_KEY'], $settings['SECRET_KEY']);

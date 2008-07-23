@@ -1,8 +1,7 @@
 <?php
 
-
 // increment these when you change css or js files
-define('CSS_VERSION', '20');
+define('CSS_VERSION', '21');
 define('JS_VERSION',  '20');
 
 function render_bool($res) {
@@ -30,11 +29,34 @@ function render_header($selected ='Home') {
 
   $header .=
     '<fb:tabs>'
-    .'<fb:tab-item title="Home"  href="index.php" '
-      .'selected="' . ($selected == 'Home') .'" />'
-    .'<fb:tab-item title="My Smilies"  href="mysmilies.php" selected="' . ($selected == 'Mine') . '" />'
-    .'<fb:tab-item title="New Smiley"  href="newsmiley.php" selected="' . ($selected == 'New') . '" />'
-    .'<fb:tab-item title="Send Smiley"  href="sendSmiley.php" selected="' . ($selected == 'Send') . '" />'
+      .'<fb:tab-item href="index.php" selected="' . ($selected == 'Home') .'">'
+        .'<fb:fbml-attribute name="title">'
+          .'<fb:intl desc="Tab label for main app page">'
+	    .'Home'
+	  .'</fb:intl>'
+        .'</fb:attribute>'
+      .'</fb:tab-item>'
+      .'<fb:tab-item href="mysmilies.php" selected="' . ($selected == 'Mine') . '">'
+        .'<fb:fbml-attribute name="title">'
+          .'<fb:intl desc="Tab label for list of user\'s smilies">'
+	    .'My Smilies'
+	  .'</fb:intl>'
+        .'</fb:attribute>'
+      .'</fb:tab-item>'
+      .'<fb:tab-item href="newsmiley.php" selected="' . ($selected == 'New') . '">'
+        .'<fb:fbml-attribute name="title">'
+          .'<fb:intl desc="Tab label for page to create new smiley">'
+	    .'New Smiley'
+	  .'</fb:intl>'
+        .'</fb:attribute>'
+      .'</fb:tab-item>'
+      .'<fb:tab-item href="sendSmiley.php" selected="' . ($selected == 'Send') . '">'
+        .'<fb:fbml-attribute name="title">'
+          .'<fb:intl desc="Tab label for page to send a smiley">'
+	    .'Send Smiley'
+	  .'</fb:intl>'
+        .'</fb:attribute>'
+      .'</fb:tab-item>'
     .'</fb:tabs>';
   $header .= '<div id="main_body">';
   return $header;
@@ -49,7 +71,7 @@ function render_footer() {
 function render_inline_style() {
  return  '<style>
   h2 {
-   font-size: 20pt;
+   font-size: 20pt !important;
    text-align: center;
   }
 
@@ -99,7 +121,7 @@ function render_inline_style() {
   }
 
   .smiley {
-  font-size: 25pt;
+  font-size: 25pt !important;
   font-weight: bold;
   padding: 10px;
   color: black;
@@ -108,7 +130,7 @@ function render_inline_style() {
 
 
   .big_smiley {
-  font-size: 100pt;
+  font-size: 100pt !important;
   font-weight: bold;
   padding: 40px;
   }
@@ -128,6 +150,8 @@ function render_emoticon_grid($moods) {
   $ret.='<div class="table"><div class="row">';
   foreach($moods as $mood) {
     list($title,$smiley) = $mood;
+    $title = '<fb:intl desc="Mood name for \'' . $smiley . '\'">' . $title
+           . '</fb:intl>';
     if ($i%3==0 && $i!=0) {
       $ret.='</div><div class="row">';
     }
@@ -155,7 +179,7 @@ function render_handler_css() {
   margin-top: 20px;
 }
 .smiley {
-  font-size: 20pt;
+  font-size: 20pt !important;
   font-weight: bold;
   padding: 0px;
   padding-top: 20px;

@@ -44,7 +44,7 @@
 }
 
 .smiley {
-  font-size: 25pt;
+  font-size: 25pt !important;
   font-weight: bold;
   padding: 10px;
 }
@@ -60,12 +60,12 @@
 
 
 h2 {
- font-size: 20pt;
+ font-size: 20pt !important;
  text-align: center;
 }
 
 h3 {
- font-size: 12pt;
+ font-size: 12pt !important;
  text-align: center;
 }
 

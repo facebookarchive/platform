@@ -1,7 +1,7 @@
 <?php
 
-include_once '../howareyoufeeling/lib/moods.php';
-include_once '../howareyoufeeling/lib/constants.php';
+include_once LIB_PATH.'moods.php';
+include_once LIB_PATH.'constants.php';
 $picked = $_POST['picked'];
 $moods  = get_moods();
 $fb = new Facebook('aa08653913021c3435f9deef7ed9693b',
@@ -36,8 +36,11 @@ color:#3B5998;
   padding: 20px;
 }
 </style>
-<h2>We are pleased to announce that <fb:name useyou="false" uid="'.$fb->user.'"/> is feeling:</h2>
-<div class="box"><div class="smiley">'.$moods[$mood][1].'</div><div >'.$moods[$mood][0].'</div></div>';
+<h2><fb:intl>We are pleased to announce that <fb:name useyou="false" uid="'.$fb->user.'"/> is feeling:</fb:intl></h2>
+<div class="box"><div class="smiley">'.$moods[$mood][1].'</div><div >
+<fb:intl desc="Mood name for \'' . $moods[$mood][1] . '\'">'
+  .$moods[$mood][0]
+.'</fb:intl></div></div>';
 $feed = array('fbml' =>  $content);
 
 $data = array('method'=> 'profileBox',

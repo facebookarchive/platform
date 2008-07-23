@@ -10,6 +10,8 @@ echo render_inline_style();
 echo '<div class="big_box"><div class="big_smiley">'
      .    $moods[$smile][1]
      .  '</div><div>'
-     .    $moods[$smile][0]
+     .    '<fb:intl desc="Mood name for \'' . $moods[$smile][1] . '\'">'
+     .       $moods[$smile][0]
+     .    '</fb:intl>'
      .  '</div></div>';
 

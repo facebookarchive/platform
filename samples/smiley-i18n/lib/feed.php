@@ -29,7 +29,10 @@ color:#3B5998;
   padding: 20px;
 }
 </style>
-<div class="box2"><div class="smiley">'.$moods[$picked][1].'</div><div >'.$moods[$picked][0].'</div></div>';
+<div class="box2"><div class="smiley">'.$moods[$picked][1].'</div><div >
+<fb:intl desc="Mood name for \'' . $moods[$picked][1] . '\'">'
+  . $moods[$picked][0]
+.'</fb:intl></div></div>';
 
 
   $image = IMAGE_LOCATION . '/smile'.$picked.'.jpg';

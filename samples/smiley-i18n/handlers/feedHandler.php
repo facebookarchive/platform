@@ -40,8 +40,8 @@ if ($picked != -1) {
 
 } else {
   $data = array('errorCode'=> VALIDATION_ERROR,
-                'errorTitle'=> 'No smiley selected',
-                'errorMessage'=>'Please select a smiley.');
+                'errorTitle'=> '<fb:intl>No smiley selected</fb:intl>',
+                'errorMessage'=>'<fb:intl>Please select a smiley.</fb:intl>');
 }
 
 echo json_encode($data);

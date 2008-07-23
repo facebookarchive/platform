@@ -25,8 +25,8 @@ if ($picked != -1) {
 
 } else {
   $data = array('errorCode'=> FACEBOOK_API_VALIDATION_ERROR,
-              'errorTitle'=> 'No mood selected',
-              'errorMessage'=>'Please select a smiley.');
+              'errorTitle'=> '<fb:intl>No mood selected</fb:intl>',
+              'errorMessage'=>'<fb:intl>Please select a smiley.</fb:intl>');
 }
 
 echo json_encode($data);
