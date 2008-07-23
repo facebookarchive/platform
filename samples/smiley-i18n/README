@@ -1,0 +1,55 @@
+
+Smiley is a sample app for the Facebook platform. It was designed
+specifically to test the many new features for the profile
+redesign. In particular it features -
+
+New profile box
+Info section
+Tab
+Feed stories
+Publisher (for self and others)
+Feed Form (for self and others)
+
+Further documentation is available at http://wiki.developers.facebook.com/index.php/New_Design_Integration_Guide
+
+--- Setup ---
+
+Smiley is packaged to set up on your own server. To configure Smiley,
+follow these steps .
+
+1) Create a new application at
+(http://www.new.facebook.com/developers/). The only fields that you
+need to give are application name and an app.facebook.com/{APP_SUFFIX}
+url. The app will configure the rest.
+
+2) Copy the file settings.ini.sample to settings.ini. Fill out your ROOT_LOCATION, APP_SUFFIX, API_KEY, and SECRET_KEY in settings.
+
+3) From the command line, run 'php setup.php' which will set your app
+settings and create your feed templates.
+
+You're good to go!
+
+-- Running the app --
+
+To run the app, navigate to apps.new.facebook.com/{APP_SUFFIX}. Once
+you log in, there are a bunch of things you can do.
+
+- Click "Add to Profile" to see a preview of your profile box.
+
+- Click "Add to Section" to see a preview of your info section.
+
+- Go to the "New Smiley" tab, and select a Smiley to see the Feed
+  dialog.
+
+- Go to the "Send Smiley" tab, and select a Smiley to send it to a
+  friends feed.
+
+- Go to your profile. Smiley should now be a publisher option. You
+  can add a smiley right from your profile. This uses Feed Story 1.
+
+- Go to a friend's profile. You can add a smiley right to their
+  Feed. This uses Feed Story 2.
+
+- Click the "+" button on the top right. From here you can add a new
+  smiley tab to your profile.
+
