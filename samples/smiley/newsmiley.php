@@ -26,11 +26,9 @@ if ($set_count > 0) {
 $feed_handler = ROOT_LOCATION . '/handlers/feedHandler.php';
 echo '<form fbtype="feedStory" action="' . $feed_handler . '">';
 
-echo render_emoticon_grid(get_moods());
+$js = 'final('. FEED_STORY_1. ',\''.IMAGE_LOCATION.'\', \'http://apps.new.facebook.com/' .APP_SUFFIX.'\', \''.ROOT_LOCATION.'\',';
+echo render_emoticon_grid(get_moods(), $js);
 echo '<input type="hidden" id="picked" name="picked" value="-1">'
-         . '<div id="centerbutton" class="buttons">'
-           . '<input type="submit" id="mood" label="My Mood">'
-         . '</div>'
          . '<div id="emoticon"></div>'
   .'</form></div>';
 

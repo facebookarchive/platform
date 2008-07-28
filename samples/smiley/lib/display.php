@@ -3,7 +3,7 @@
 
 // increment these when you change css or js files
 define('CSS_VERSION', '20');
-define('JS_VERSION',  '20');
+define('JS_VERSION',  '28');
 
 function render_bool($res) {
   if ($res) {
@@ -123,7 +123,7 @@ function render_inline_style() {
 }
 
 
-function render_emoticon_grid($moods) {
+function render_emoticon_grid($moods, $js="select(") {
   $ret = '';
   $i = 0;
   $ret.='<div class="table"><div class="row">';
@@ -132,7 +132,7 @@ function render_emoticon_grid($moods) {
     if ($i%3==0 && $i!=0) {
       $ret.='</div><div class="row">';
     }
-    $ret .= '<div onclick="picked('.$i.')" onmouseover="over('.$i.')" onmouseout="out('.$i.')" class="box" id="sm_'.$i.'"><div class="smiley">'.$smiley.'</div><div id="smt_'.$i.'" class="title">'.$title.'</div></div>';
+    $ret .= '<div onclick="'.$js.'\''.$title.'\',\''.$smiley.'\','.$i.')" onmouseover="over('.$i.')" onmouseout="out('.$i.')" class="box" id="sm_'.$i.'"><div class="smiley">'.$smiley.'</div><div id="smt_'.$i.'" class="title">'.$title.'</div></div>';
     $i++;
   }
   $ret .= '</div></div>';

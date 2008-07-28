@@ -5,9 +5,26 @@ function over(id) {
 function out(id) {
   document.getElementById("sm_"+id).removeClassName("box_over");
 }
-function select(id, feed) {
+function select(title, mood, id) {
   document.getElementById("sm_"+id).addClassName("box_selected");
   document.getElementById("picked").setValue(id);
+}
+
+function final(template_id, image_src, base, callback, title, emote, id) {
+  select(title, emote, id);
+  var image =  image_src + id + ".jpg";
+  var template_data = {'mood': title,
+                       'emote': emote,
+                       'mood_src': image,
+                       'images' : [{'href':'http://www.facebook.com' , 'src' : image}]};
+
+
+  var ajax = new Ajax();
+  ajax.responseType = Ajax.RAW;
+  ajax.post(callback+'handlers/jsFeed.php', {'picked':id});
+
+  Facebook.showFeedDialog(template_id, template_data, '', [],
+                          function() {document.setLocation(base + 'mysmilies.php');});
 }
 
 function unselect(id) {
