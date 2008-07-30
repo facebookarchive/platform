@@ -197,7 +197,7 @@ function out(id) {
   document.getElementById("sm_"+id).removeClassName("box_over");
 }
 
-function select(id, feed) {
+function select(title, mood, id, feed) {
   document.getElementById("sm_"+id).addClassName("box_selected");
   document.getElementById("picked").setValue(id);
   if (feed) {
