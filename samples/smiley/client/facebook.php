@@ -45,6 +45,7 @@ class Facebook {
   public $fb_params;
   public $user;
   public $profile_user;
+  public $canvas_user;
   public function __construct($api_key, $secret, $generate_session_secret=false) {
     $this->api_key                 = $api_key;
     $this->secret                  = $secret;
@@ -57,6 +58,9 @@ class Facebook {
     }
     if (isset($this->fb_params['added'])) {
       $this->api_client->added = $this->fb_params['added'];
+    }
+    if (isset($this->fb_params['canvas_user'])) {
+      $this->api_client->canvas_user = $this->fb_params['canvas_user'];
     }
   }
 
@@ -75,6 +79,8 @@ class Facebook {
       // the wrong user.
       $user        = isset($this->fb_params['user'])        ? $this->fb_params['user'] : null;
       $this->profile_user        = isset($this->fb_params['profile_user'])        ? $this->fb_params['profile_user'] : null;
+      $this->canvas_user         = isset($this->fb_params['canvas_user'])        ? $this->fb_params['canvas_user'] : null;
+
       if (isset($this->fb_params['session_key'])) {
         $session_key =  $this->fb_params['session_key'];
       } else if (isset($this->fb_params['profile_session_key'])) {
@@ -172,6 +178,10 @@ class Facebook {
 
   public function get_loggedin_user() {
     return $this->user;
+  }
+
+  public function get_canvas_user() {
+    return $this->canvas_user;
   }
 
   public function get_profile_user() {

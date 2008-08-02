@@ -38,6 +38,7 @@ class FacebookRestClient {
   public $api_key;
   public $friends_list; // to save making the friends.get api call, this will get prepopulated on canvas pages
   public $added;        // to save making the users.isAppAdded api call, this will get prepopulated on canvas pages
+  public $canvas_user; // to direct the friends_get call for non-logged in users
   public $batch_mode;
   private $batch_queue;
   private $call_as_apikey;
@@ -398,7 +399,11 @@ function toggleDisplay(id, type) {
     if (isset($this->friends_list)) {
       return $this->friends_list;
     }
-    return $this->call_method('facebook.friends.get', array());
+    $params = array();
+    if (isset($this->canvas_user)) {
+      $params['uid'] = $this->canvas_user;
+    }
+    return $this->call_method('facebook.friends.get', $params);
   }
 
   /**
