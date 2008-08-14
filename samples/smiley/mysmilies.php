@@ -16,10 +16,16 @@ $user = $fb->require_login();
 $moods = get_moods();
 
 // Your past moods are stored in a preference for simplicity
-$mood_list = $fb->api_client->data_getUserPreference(0);
+try {
+  $mood_list = $fb->api_client->data_getUserPreference(0);
+} catch (Exception $e) {
+  // prevent fatal
+  }
+
+$is_tab = isset($_POST['fb_sig_in_profile_tab']);
 
 // This can be viewed as an app page or a tabs
-if (!isset($_POST['is_tab'])) {
+if (!$is_tab) {
   echo render_header('Mine');
  } else {
   echo render_inline_style();
@@ -50,8 +56,9 @@ for ($i =0; $i< $n; $i++) {
      .  '</div></a>';
 }
 echo '</div></div>';
-if (isset($_POST['is_tab'])) {
+if ($is_tab) {
   echo '<br><a href="http://apps.facebook.com/'.APP_SUFFIX.'" >Check out Smiley</a>';
+  echo '<fb:visible-to-friends uid="'.$fb->user.'"><br><a href="http://apps.facebook.com/'.APP_SUFFIX.'sendSmiley.php?to_user='.$fb->user.'" >Send <fb:name linked="false" useyou="0" firstnameonly="1" uid="'.$fb->user.'"/> a smiley!</a></fb:visible-to-friends>';
 }
 echo '</div>';
 
