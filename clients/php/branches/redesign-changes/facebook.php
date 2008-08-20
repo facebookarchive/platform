@@ -2,7 +2,7 @@
 // Copyright 2004-2008 Facebook. All Rights Reserved.
 //
 // +---------------------------------------------------------------------------+
-// | Facebook Platform PHP5 client                                 |
+// | Facebook Platform PHP5 client                                             |
 // +---------------------------------------------------------------------------+
 // | Copyright (c) 2007 Facebook, Inc.                                         |
 // | All rights reserved.                                                      |
@@ -164,7 +164,7 @@ class Facebook {
       // get a frame within a frame.
       echo "<script type=\"text/javascript\">\ntop.location.href = \"$url\";\n</script>";
     } else {
-      header('Location', $url);
+      header('Location: ' . $url);
     }
     exit;
   }
