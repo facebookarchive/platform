@@ -1,11 +1,13 @@
 <?php
 
-include_once '../howareyoufeeling/lib/moods.php';
-include_once '../howareyoufeeling/lib/constants.php';
+include_once '../constants.php';
+include_once LIB_PATH.'moods.php';
+include_once LIB_PATH.'display.php';
+
 $picked = $_POST['picked'];
 $moods  = get_moods();
-$fb = new Facebook('aa08653913021c3435f9deef7ed9693b',
-                   'f902d96f663db49e83c80d83d1e93725');
+$fb = get_fb();
+
 $str = $fb->api_client->data_getUserPreference(0);
 $mood = intval($str[0]);
 
