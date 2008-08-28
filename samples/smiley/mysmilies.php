@@ -28,7 +28,7 @@ $is_tab = isset($_POST['fb_sig_in_profile_tab']);
 if (!$is_tab) {
   echo render_header('Mine');
  } else {
-  echo render_inline_style();
+  echo '<link rel="stylesheet" type="text/css" href="'.ROOT_LOCATION.'/css/tab.css?id='.CSS_VERSION.'" />';
  }
 
 
