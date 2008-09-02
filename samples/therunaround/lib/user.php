@@ -23,21 +23,39 @@ class User {
   public $password; // should be protected, temp hack
   protected $runs = null;
 
+  /*
+   * Figure out who the logged in user is.
+   *
+   * There are two ways of doing this:
+   * 1. Use the site-specific cookie auth system. Every site has one
+   *    for managing their users; if someone is logged in with that method, great
+   *
+   * 2. If the user is logged in with Facebook, then return that associated account.
+   *     The site-specific auth doesn't factor in.
+   *
+   */
   static function getLoggedIn() {
-    $username = $_COOKIE[USER_COOKIE_NAME];
-    $user = ($username && $username != 'deleted') ? User::getByUsername($username) : null;
 
-    // If a user's session expires or is lost, then the XFBML stuff won't work anymore.
-    // If they were a user before Facebook, then their name will still work, and this will succeed,
-    // but if it's a facebook-only user (they registered via Facebook)
-    if ($user && $user->is_facebook_user()) {
-      if (!$user->getName()) {
-        // name fetch failed. user is not logged in.
+    // check facebook first, if they are logged in use that
+    // if they log out of facebook, this will automatically log them out here
+    $fb_uid = facebook_client()->get_loggedin_user();
+
+    if ($fb_uid) {
+      $user = User::getByFacebookUID($fb_uid);
+      if ($user) {
+        setcookie(USER_COOKIE_NAME, 'deleted'); // clear any cookies from someone else who may be here
+        return $user;
+      }
+    } else {
+      // okay, no facebook hit, check the regular auth system
+      $username = $_COOKIE[USER_COOKIE_NAME];
+      $user = ($username && $username != 'deleted') ? User::getByUsername($username) : null;
+      if ($user && !$user->is_facebook_user()) {
+        return $user;
+      } else {
         return null;
       }
     }
-
-    return $user;
   }
 
   static function getByUsername($username) {
@@ -251,21 +269,27 @@ class User {
    *
    */
   function logIn($password = null) {
+
+    // facebook users are already logged in, no need for cookie
+    if ($this->is_facebook_user() &&
+        facebook_client()->get_loggedin_user()) {
+      return false;
+    }
+
     // In a real app, you would probably store the password hash,
     // not the raw password. But since this is a demo app, just store
     // natively for security
     if ($password !== null &&
-      $this->password != $password) {
-     error_log("Attempt to log in for user "
-               .$user->username
-               ." with password '"
-               . $password
-               . "' . Real password is '"
-               .$this->password
-               ."'");
+        $this->password != $password) {
+      error_log("Attempt to log in for user "
+                .$user->username
+                ." with password '"
+                . $password
+                . "' . Real password is '"
+                .$this->password
+                ."'");
       return false;
     }
-
     setcookie(USER_COOKIE_NAME, $this->username);
     return true;
   }

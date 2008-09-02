@@ -3,6 +3,11 @@
 include_once 'lib/core.php';
 include_once 'lib/fbconnect.php';
 
+/*
+ * This is called after the Facebook Connect button is pressed on the front page
+ * or anywhere on the site. This is the code that links accounts.
+ */
+
 // Gets any credentials for The Run Around
 $user = User::getLoggedIn();
 

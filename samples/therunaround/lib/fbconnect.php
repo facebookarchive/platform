@@ -17,7 +17,10 @@ function render_fbconnect_init_js() {
      <script src="fbconnect.js" type="text/javascript"></script>',
     get_static_root());
 
-  onloadRegister('showDocAfterRender();');
+  //  $already_logged_in = facebook_client()->get_loggedin_user() ? "true" : "false";
+  onloadRegister(sprintf("facebook_onload(%s);",
+                         (bool) facebook_client()->get_loggedin_user()));
+
   return $html;
 }
 
@@ -30,7 +33,7 @@ function render_fbconnect_init_js() {
  *
  */
 function render_fbconnect_button($link_to_current_user='', $size='medium') {
-  return '<fb:login-button size="'.$size.'" onclick="facebook_session_on_ready('.$link_to_current_user.');"></fb:login-button>';
+  return '<fb:login-button size="'.$size.'" onclick="facebook_button_onclick('.$link_to_current_user.');"></fb:login-button>';
 }
 
 /*
@@ -121,7 +124,7 @@ function facebook_unregisterUsers($email_hashes) {
  */
 function facebook_get_fields($fb_uid, $fields) {
   try {
-    $infos = facebook_client()->api_client->users_getInfo(array($fb_uid),
+    $infos = facebook_client()->api_client->users_getInfo($fb_uid,
                                                           $fields);
 
     if (empty($infos)) {

@@ -10,8 +10,10 @@
 
 include_once 'lib/core.php';
 
-$account_ids = idx($_POST, 'fb_sig_linked_account_ids');
-$fb_uid = facebook_client()->get_loggedin_user();
+
+$fb = facebook_client();
+$fb_uid = $fb->get_loggedin_user();
+$account_ids = idx($fb->fb_params, 'linked_account_ids');
 
 if (!($account_ids && $fb_uid)) {
   exit;

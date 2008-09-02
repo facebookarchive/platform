@@ -25,9 +25,25 @@ function ensure_init(callback) {
   }
 }
 
-function showDocAfterRender() {
+/*
+ * Runs on every page load.
+ */
+function facebook_onload(already_logged_into_facebook) {
+  // user state is either: has a session, or does not.
+  // if the state has changed, detect that and reload.
   ensure_init(function() {
-      FB.XFBML.Host.get_areElementsReady().waitUntilReady (show_document);
+      FB.Facebook.get_sessionState().waitUntilReady(function(session) {
+          var is_now_logged_into_facebook = session ? true : false;
+
+          // if the new state is the same as the old (i.e., nothing changed)
+          // then do nothing
+          if (is_now_logged_into_facebook == already_logged_into_facebook) {
+            return;
+          }
+
+          // otherwise, refresh to pick up the state change
+          go_home();
+        });
     });
 }
 
@@ -42,42 +58,46 @@ function showDocAfterRender() {
  *                              linked to a currently logged in user, or used
  *                              to create a new account anyway
  */
-function facebook_session_is_ready(link_to_current_user) {
-    var user = FB.Facebook.apiClient.get_session() ?
-        FB.Facebook.apiClient.get_session().uid :
-        null;
+function facebook_button_onclick(link_to_current_user) {
 
-  if (!user) {
-    // probably should give some indication of failure to the user
-    return;
-  }
+  ensure_init(function() {
+      FB.Facebook.get_sessionState().waitUntilReady(function() {
+          var user = FB.Facebook.apiClient.get_session() ?
+            FB.Facebook.apiClient.get_session().uid :
+            null;
 
+          if (!user) {
+            // probably should give some indication of failure to the user
+            return;
+          }
 
-  // don't pass the user back raw to the server - it's too easy to spoof
-  // better to just tell them that the session is ready, and let facebook
-  // figure it out based on the cookies and signature
-  var params = 'save=1';
+          // don't pass the user back raw to the server - it's too easy to spoof
+          // better to just tell them that the session is ready, and let facebook
+          // figure it out based on the cookies and signature
+          var params = 'save=1';
 
-  if (link_to_current_user) {
-    params += '&link_to_current_user=1';
-  }
+          if (link_to_current_user) {
+            params += '&link_to_current_user=1';
+          }
 
-  ajax('ajax.php', params, function(text) {
-      if (text > 0) {
-        window.location = 'index.php';
-      }
+          ajax('ajax.php', params, function(text) {
+              go_home();
+            });
+        });
     });
 }
 
 /*
- * This will process the session when it becomes available.
+ * Do a page refresh after login state changes.
+ * This is the easiest but not the only way to pick up changes.
+ * If you have a small amount of Facebook-specific content on a large page,
+ * then you could change it in Javascript without refresh.
  */
-function facebook_session_on_ready(link_to_current_user) {
-  ensure_init(function() {
-      FB.Facebook.get_sessionState().waitUntilReady(function() {
-          facebook_session_is_ready(link_to_current_user);
-        });
-    });
+function go_home() {
+  // prevent the infinite redirect
+  if (window.location != 'index.php?refreshed') {
+    window.location = 'index.php?refreshed';
+  }
 }
 
 /*
@@ -109,9 +129,9 @@ function facebook_publish_feed_story(form_bundle_id, template_data) {
 /*
  * If a user is not connected, then the checkbox that says "Publish To Facebook"
  * is hidden in the "add run" form.
+ *
  * This function detects whether the user is logged into facebook but just
  * not connected, and shows the checkbox if that's true.
- *
  */
 function facebook_show_feed_checkbox() {
   ensure_init(function() {

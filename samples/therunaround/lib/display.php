@@ -13,6 +13,8 @@ function render_header() {
     return;
   }
 
+  prevent_cache_headers();
+
   $html = '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -23,37 +25,13 @@ function render_header() {
     <script type="text/javascript" src="base.js"></script>
   ';
 
-  if (is_fbconnect_enabled()) {
-    $body_style = ' style="visibility:hidden;"';
-
-  } else {
-    $body_style = '';
-  }
-
   $html .='
   </head>
-  <body '.$body_style.'>';
+  <body>';
 
   if (is_fbconnect_enabled()) {
     ensure_loaded_on_correct_url();
-
-    // The XFBML may take some time to render the page after it's been loaded
-    // We use a CSS trick to make it seem like the page has not loaded yet,
-    // and then use Javascript to expose it once it's ready
-    // If the XFBML parser takes longer than 800ms, then just expose the page
-    // anyway.
-    //
-    // You can choose to use this trick on a subsection of the page as well,
-    // if the whole page shouldn't block while loading
-
-
     $html .= render_fbconnect_init_js();
-    $html .= '<script type="text/javascript">  '
-      .'function show_document() {'
-      .'  document.body.style.visibility = "visible";'
-      .'}'
-      .'setTimeout("show_document();", 800); '
-      .'</script>';
   }
 
   $html .='
@@ -76,9 +54,32 @@ function render_header() {
     $html .= '<b>Welcome, '.$user->getName().'</b>';
     $html .= '<div class="account_links">';
     $html .= '<a href="account.php">Account Settings</a> | ';
-    $html .= '<a href="logout.php">Logout</a><br />';
-    $html .= '</div>';
-    // $html .= '(Facebook UID: '.$user->fb_uid . ')'; // for debugging
+    if ($user->is_facebook_user()) {
+      // The logoutAndRedirect function is supposed to perform the logout,
+      // and then redirect back to wherever you specify,
+      // However, two issues:
+      //  1. the browser seems to cache the index.php page sometimes,
+      //     so it will reload without paying attention to the fact that
+      //     there is no session. so we do an mt_rand to cache bust
+      //     there is certainly a better way to do this
+      //  2. sometimes the redirect doesn't work. this is a bug on the end
+      //     of logoutAndRedirect, and once it's fixed the document.location
+      //     trick can go away
+      $redirect_target = '/index.php?logout='.mt_rand(0,1000);
+
+      $js = sprintf("FB.Connect.logout(function() { "
+                    ."  document.location = '%s'; "
+                    ."}); "
+                    ."return false; ", // prevent link from going to destination
+                    $redirect_target);
+
+      $html .= '<a href="#" onclick="'.$js.'">'
+               .'Logout'
+               .'</a>';
+    } else {
+      $html .= '<a href="logout.php">Logout</a>';
+    }
+    $html .= '<br /></div>';
     $html .= '</div>';
   } else {
     $html .= '<div class="account">';
@@ -101,6 +102,17 @@ function render_header() {
   }
 
   return $html;
+}
+
+
+/*
+ * Prevent caching of pages. When the Javascript needs to refresh a page,
+ * it wants to actually refresh it, so we want to prevent the browser from
+ * caching them.
+ */
+function prevent_cache_headers() {
+  header('Cache-Control: private, no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
+  header('Pragma: no-cache');
 }
 
 /*
@@ -200,7 +212,7 @@ function render_add_run_table($user) {
   $html .= '<p id="publish_fb_checkbox" style="'.$style.'" >'
       .'<img src="http://static.ak.fbcdn.net/images/icons/favicon.gif" /> '
       .'<input type="checkbox" name="publish_to_facebook" checked /> '
-      .'Publish this run to Facebook'
+      .'Let my Facebook friends see this'
       .'</p>';
   $html .= render_input_button('Add Run', 'submit');
   $html .= '</form>';
@@ -330,7 +342,7 @@ function render_connect_invite_link($has_existing_friends = false) {
 
   $one_friend_text = 'You have one'.$more.' Facebook friend that also uses The Run Around. ';
   $multiple_friends_text = 'You have '.$num.$more.' Facebook friends that also use The Run Around. ';
-  $invite_link = '<a href="" onclick="FB.Connect.inviteConnectUsers(); return false;">Invite them to Connect.</a>';
+  $invite_link = '<a onclick="FB.Connect.inviteConnectUsers(); return false;">Invite them to Connect.</a>';
 
   $html = '';
   $html .= '<fb:container class="HideUntilElementReady" condition="FB.XFBML.Operator.equals(FB.XFBML.Context.singleton.get_unconnectedFriendsCount(), 1)" >';
@@ -341,4 +353,3 @@ function render_connect_invite_link($has_existing_friends = false) {
   $html .= '</fb:container>';
   return $html;
 }
-
