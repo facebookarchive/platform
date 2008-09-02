@@ -68,6 +68,9 @@ class Facebook {
     $this->fb_params = $this->get_valid_fb_params($_POST, 48*3600, 'fb_sig');
     if (!$this->fb_params) {
       $this->fb_params = $this->get_valid_fb_params($_GET, 48*3600, 'fb_sig');
+      // look for iframe posted params, e.g. from preload fql
+      $this->fb_post_params = $this->get_valid_fb_params($_POST, 48*3600, 'fb_post_sig');
+      $this->fb_params = array_merge($this->fb_params, $this->fb_post_params);
     }
     if ($this->fb_params) {
       // If we got any fb_params passed in at all, then either:
