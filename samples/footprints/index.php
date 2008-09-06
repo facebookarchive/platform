@@ -1,7 +1,7 @@
 <?php
 
 // the facebook client library
-include_once '../client/facebook.php';
+include_once '../php/facebook.php';
 
 // some basic library functions
 include_once 'lib.php';
