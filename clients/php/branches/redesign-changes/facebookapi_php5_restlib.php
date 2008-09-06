@@ -434,6 +434,15 @@ function toggleDisplay(id, type) {
   public function &feed_publishUserAction($template_bundle_id, $template_data,
                                           $target_ids='', $body_general='')
   {
+    if (is_array($template_data)) {
+      $template_data = json_encode($template_data);
+    } // allow client to either pass in JSON or an assoc that we JSON for them
+
+    if (is_array($target_ids)) {
+      $target_ids = json_encode($target_ids);
+      $target_ids = trim($target_ids, "[]"); // we don't want the square bracket delims
+    }
+
     return $this->call_method('facebook.feed.publishUserAction',
                               array('template_bundle_id' => $template_bundle_id,
                                     'template_data' => $template_data,
