@@ -55,27 +55,11 @@ function render_header() {
     $html .= '<div class="account_links">';
     $html .= '<a href="account.php">Account Settings</a> | ';
     if ($user->is_facebook_user()) {
-      // The logoutAndRedirect function is supposed to perform the logout,
-      // and then redirect back to wherever you specify,
-      // However, two issues:
-      //  1. the browser seems to cache the index.php page sometimes,
-      //     so it will reload without paying attention to the fact that
-      //     there is no session. so we do an mt_rand to cache bust
-      //     there is certainly a better way to do this
-      //  2. sometimes the redirect doesn't work. this is a bug on the end
-      //     of logoutAndRedirect, and once it's fixed the document.location
-      //     trick can go away
-      $redirect_target = '/index.php?logout='.mt_rand(0,1000);
-
-      $js = sprintf("FB.Connect.logout(function() { "
-                    ."  document.location = '%s'; "
-                    ."}); "
-                    ."return false; ", // prevent link from going to destination
-                    $redirect_target);
-
-      $html .= '<a href="#" onclick="'.$js.'">'
-               .'Logout'
-               .'</a>';
+      $html .= sprintf('<a href="#" onclick="FB.Connect.logoutAndRedirect(\'%s\')">'
+                       .'Logout of Facebook'
+                       //.'<img src="images/fbconnect_logout.png">'
+                       .'</a>',
+                       $_SERVER['REQUEST_URI']);
     } else {
       $html .= '<a href="logout.php">Logout</a>';
     }
@@ -212,7 +196,7 @@ function render_add_run_table($user) {
   $html .= '<p id="publish_fb_checkbox" style="'.$style.'" >'
       .'<img src="http://static.ak.fbcdn.net/images/icons/favicon.gif" /> '
       .'<input type="checkbox" name="publish_to_facebook" checked /> '
-      .'Let my Facebook friends see this'
+      .'Publish this run to Facebook'
       .'</p>';
   $html .= render_input_button('Add Run', 'submit');
   $html .= '</form>';

@@ -6,11 +6,14 @@ echo render_header();
 if ($user = User::getLoggedIn()) {
   // do nothing
 } else if (!empty($_POST)) {
-  if ($_POST['save']) {
-    $user_params = array('username' => idx($_POST, 'username'),
-                         'name'     => idx($_POST, 'name'),
-                         'email'    => idx($_POST, 'email'),
-                         'password' => idx($_POST, 'password'));
+  $params = parse_http_args($_POST,
+      array('save', 'username', 'name', 'email', 'password'));
+
+  if ($params['save']) {
+    $user_params = array('username' => $params['username'],
+                         'name'     => $params['name'],
+                         'email'    => $params['email'],
+                         'password' => $params['password']);
 
     $user = new User($user_params);
 

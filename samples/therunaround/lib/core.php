@@ -172,3 +172,19 @@ function get_domain($url) {
   }
   return $info['path'];
 }
+
+function no_magic_quotes($val) {
+  if (get_magic_quotes_gpc()) {
+    return stripslashes($val);
+  } else {
+    return $val;
+  }
+}
+
+function parse_http_args($http_params, $keys) {
+  $result = array();
+  foreach ($keys as $key) {
+    $result[$key] = no_magic_quotes(idx($http_params, $key));
+  }
+  return $result;
+}

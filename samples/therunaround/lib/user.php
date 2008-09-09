@@ -27,35 +27,60 @@ class User {
    * Figure out who the logged in user is.
    *
    * There are two ways of doing this:
+   *
    * 1. Use the site-specific cookie auth system. Every site has one
    *    for managing their users; if someone is logged in with that method, great
    *
    * 2. If the user is logged in with Facebook, then return that associated account.
    *     The site-specific auth doesn't factor in.
    *
+   * The philosophy here is that Facebook constitutes a "single-sign-on" experience:
+   * once you've connected your account to a site, whenever you visit that site again,
+   * it should just automatically know who you are. Therefore, logout logs you out
+   * of Facebook, and just being logged into Facebook is sufficient to log you in here.
+   *
+   * We achieve that through the Javascript API (see facebook_onload() function). The JS
+   * retrieves the session and sets some cookies; the PHP client lib verifies those
+   * cookies and returns the logged in user. If we are able to get a user, then it means
+   * that the user has already authorized the app, so just load their account (or
+   * create a new one) and log them in.
+   *
    */
   static function getLoggedIn() {
 
-    // check facebook first, if they are logged in use that
-    // if they log out of facebook, this will automatically log them out here
+    $native_user = User::getLoggedInNative();
     $fb_uid = facebook_client()->get_loggedin_user();
-
     if ($fb_uid) {
       $user = User::getByFacebookUID($fb_uid);
-      if ($user) {
-        setcookie(USER_COOKIE_NAME, 'deleted'); // clear any cookies from someone else who may be here
-        return $user;
-      }
-    } else {
-      // okay, no facebook hit, check the regular auth system
-      $username = $_COOKIE[USER_COOKIE_NAME];
-      $user = ($username && $username != 'deleted') ? User::getByUsername($username) : null;
-      if ($user && !$user->is_facebook_user()) {
-        return $user;
-      } else {
-        return null;
+
+      if ($native_user) {
+        // connect their accounts.
+        // this way the facebook account is their sole means of auth
+        // for this session, so a "logout" click will work
+        $native_user->logOut();
+        $native_user->connectWithFacebookUID($fb_uid);
+        $user = $native_user;
+      } else if (!$user) {
+        $user = User::createFromFacebookUID($fb_uid);
       }
     }
+
+    if ($native_user && !$user) {
+      $user = $native_user;
+    }
+
+    return $user;
+  }
+
+  /*
+   * This is the original getLoggedIn function, before Facebook Connect.
+   * Retrieve the current active user based on our custom cookie.
+   */
+  static function getLoggedInNative() {
+    // check the logged-in username first
+    $username = $_COOKIE[USER_COOKIE_NAME];
+    return ($username && $username != 'unknown') ?
+      User::getByUsername($username) : null;
   }
 
   static function getByUsername($username) {
@@ -219,6 +244,10 @@ class User {
     $this->email = idx($data,'email','');
     $this->password = idx($data,'password','');
     $this->fb_uid = idx($data,'fb_uid',0);
+
+    if ($this->username == 'unknown') {
+      throw new Exception("Cannot create a user with name 'unknown'");
+    }
   }
 
   function is_facebook_user() {
@@ -299,7 +328,7 @@ class User {
    *
    */
   function logOut() {
-    setcookie(USER_COOKIE_NAME, 'deleted');
+    setcookie(USER_COOKIE_NAME, 'unknown');
     if ($this->is_facebook_user()) {
       try {
         // it's important to expire the session, or else the user
@@ -315,8 +344,24 @@ class User {
 
   /*
    * Associate this user account with the given Facebook user.
+   *
    */
   function connectWithFacebookUID($fb_uid) {
+    // if there is already a facebook account
+    if ($fb_user = User::getByFacebookUID($fb_uid)) {
+      // if there are two separate accounts for the same
+      // user, then delete the Facebook-specific one
+      // and connect the facebook id with the existing
+      // account.
+      //
+      // a real site wouldn't actually delete an account -
+      // the user should probably control the merging
+      // of data from the to-be-deleted account to their own
+      if ($fb_user->username != $this->username) {
+        $fb_user->delete();
+      }
+    }
+
    if (!$fb_uid) {
       return false;
    }
@@ -374,8 +419,8 @@ class User {
   /*
    * Tells whether the account has a password set.
    *
-   * If the account has no password, then it cannot be disconnected, only deleted outright (otherwise how will
-   * the user log in?)
+   * If the account has no password, then it cannot be disconnected, only
+   * deleted outright (otherwise how will the user log in?)
    */
   function hasPassword() {
     return (bool) $this->password;

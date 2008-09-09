@@ -12,15 +12,20 @@ if (!$user) {
 // If the user updated their account, handle the form submission
 
 if (!empty($_POST)) {
-  if ($user != $_POST['username']) {
-    error_log("submitted a your account form for '".$_POST['username'] ."' when user '".$user->username. "' is logged in!");
+
+  $params = parse_http_args($_POST,
+      array('username', 'name', 'email', 'password'));
+
+  if ($user != $params['username']) {
+    error_log("submitted a your account form for '".$params['username'] ."' when user '".$user->username. "' is logged in!");
     go_home();
   }
 
-  $user->name = $_POST['name'];
-  $user->email = $_POST['email'];
-  if ($_POST['password'] != PASSWORD_PLACEHOLDER) {
-    $user->password = $_POST['password'];
+  $user->name = $params['name'];
+  $user->email = $params['email'];
+
+  if ($params['password'] != PASSWORD_PLACEHOLDER) {
+    $user->password = $params['password'];
   }
   $user->save();
 }
@@ -46,7 +51,7 @@ if (is_fbconnect_enabled()) {
   } else {
     echo '<h3>Connect with Facebook</h3>';
     echo '<p>Do you have a Facebook account? Connect it with The Run Around to share your information here, and see which of your friends are here.</p>';
-    echo render_fbconnect_button(($user > 0));
+    echo render_fbconnect_button();
   }
 }
 

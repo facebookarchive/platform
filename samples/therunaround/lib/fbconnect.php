@@ -17,9 +17,13 @@ function render_fbconnect_init_js() {
      <script src="fbconnect.js" type="text/javascript"></script>',
     get_static_root());
 
-  //  $already_logged_in = facebook_client()->get_loggedin_user() ? "true" : "false";
-  onloadRegister(sprintf("facebook_onload(%s);",
-                         (bool) facebook_client()->get_loggedin_user()));
+  $html .= '<script type="text/javascript">'
+    .'FB.FBDebug.logLevel = 4; '
+    .'FB.FBDebug.isEnabled = true;'
+    .'</script>';
+
+  $already_logged_in = facebook_client()->get_loggedin_user() ? "true" : "false";
+  onloadRegister(sprintf("facebook_onload(%s);", $already_logged_in));
 
   return $html;
 }
@@ -29,11 +33,11 @@ function render_fbconnect_init_js() {
  * When the button is clicked, the facebook_button_onclick JS function is fired. That triggers the Facebook JS library to
  * authenticate the user, and sets up a handler for when the authentication is complete.
  *
- * @param $link_to_current_user The button can be used to log in, or to associate an existing account. If an existing account, pass true.
+ * @param $size   size of the button. one of ('small', 'medium', 'large')
  *
  */
-function render_fbconnect_button($link_to_current_user='', $size='medium') {
-  return '<fb:login-button size="'.$size.'" onclick="facebook_button_onclick('.$link_to_current_user.');"></fb:login-button>';
+function render_fbconnect_button($size='medium') {
+  return '<fb:login-button size="'.$size.'" onclick="facebook_button_onclick();"></fb:login-button>';
 }
 
 /*
@@ -59,7 +63,7 @@ function register_feed_form_js($run) {
 function facebook_client() {
   static $facebook = null;
   if ($facebook === null) {
-    $facebook = new Facebook(get_api_key(), get_api_secret(), false, get_base_fb_url());
+    $facebook = new Facebook(get_api_key(), get_api_secret());
 
     if (!$facebook) {
       error_log('Could not create facebook client.');
@@ -70,7 +74,16 @@ function facebook_client() {
 }
 
 /**
- * Wrapper method for registering users.  Makes sure we never send a session key.
+ * Register new accounts with Facebook to facilitate friend linking.
+ * Note: this is an optional step, and only makes sense if you have
+ * a site with an existing userbase that you want to tie into
+ * Facebook Connect.
+ *
+ * See http://wiki.developers.facebook.com/index.php/Friend_Linking
+ * for more details.
+ *
+ * @param $accounts  array of accounts, each with keys 'email_hash' and 'account_id'
+ * @return whether the emails were registered. true unless there's an error
  */
 function facebook_registerUsers($accounts) {
   $facebook = facebook_client();
@@ -83,7 +96,9 @@ function facebook_registerUsers($accounts) {
              'facebook.connect.registerUsers',
              array('accounts' => json_encode($accounts)));
 
-    // On success, registerUsers returns the set of email hashes registered
+    // On success, return the set of email hashes registered
+    // An email hash will be registered even if the email does not match a Facebook account
+
     $result = (count($ret) == count($accounts));
   } catch (Exception $e) {
     error_log("Exception thrown while calling facebook.connect.registerUsers: ".$e->getMessage());
@@ -94,7 +109,9 @@ function facebook_registerUsers($accounts) {
 }
 
 /**
- * Wrapper method for unregistering users.  Makes sure we never send a session key.
+ * Lets Facebook know that these emails are no longer members of your site.
+ *
+ * @param email_hashes   an array of strings from registerUsers
  */
 function facebook_unregisterUsers($email_hashes) {
   $facebook = facebook_client();
@@ -133,7 +150,8 @@ function facebook_get_fields($fb_uid, $fields) {
     return reset($infos);
 
   } catch (Exception $e) {
-    error_log("Failure in the api: ". $e->getMessage());
+    error_log("Failure in the api when requesting " . join(",", $fields)
+              ." on uid " . $fb_uid . " : ". $e->getMessage());
     return null;
   }
 }

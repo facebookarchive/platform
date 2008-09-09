@@ -12,14 +12,19 @@ if (!$user) {
   echo render_footer();
   exit;
 }
-$params = array('time' => idx($_POST,'time'),
-                'miles' => idx($_POST,'miles'),
-                'route' => idx($_POST,'route'));
+
+$params = parse_http_args($_POST, array('time',
+                                        'miles',
+                                        'route',
+                                        'date_month',
+                                        'date_day',
+                                        'date_year',
+                                        'publish_to_facebook'));
 
 // If the user has added a run, then handle the form post
 
-if (isset($params['miles'])) {
-  $params['date'] = mktime(0,0,0,$_POST['date_month'],$_POST['date_day'],$_POST['date_year']);
+if (!empty($params['miles'])) {
+  $params['date'] = mktime(0,0,0,$params['date_month'],$params['date_day'],$params['date_year']);
   $run = new Run($user, $params);
   if (!$run->save()) {
     echo render_error('Something went wrong while saving the run.');
@@ -29,7 +34,7 @@ if (isset($params['miles'])) {
     // This will only be true if the checkbox on the previous page was checked
     // The feed_loading div will be killed by JS that runs once the feed form is generated (since it can sometimes take a second or two)
 
-    if ($_POST['publish_to_facebook']) {
+    if ($params['publish_to_facebook']) {
       register_feed_form_js($run);
       $success .= '<div id="feed_loading">Publishing to Facebook... '
         .'<img src="http://static.ak.fbcdn.net/images/upload_progress.gif?0:25923" /></div>';

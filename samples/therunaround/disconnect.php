@@ -9,7 +9,9 @@ if (!$user) {
   go_home();
 }
 
-if ($_POST['save']) {
+$params = parse_http_args($_POST, array('save'));
+
+if ($params['save']) {
   if ($user->disconnectFromFacebook()) {
     header('Location: account.php');
   } else {

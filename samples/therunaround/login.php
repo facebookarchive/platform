@@ -13,18 +13,20 @@ if (User::getLoggedIn()) {
 }
 $error = '';
 
+$params = parse_http_args($_POST, array('password', 'username'));
+
 /*
  * If user entered normal username/password,
  * then log them in via their normal account.
  */
-if ($_POST['password'] && $_POST['username']) {
-  $user = User::getByUsername($_POST['username']);
+if ($params['password'] && $params['username']) {
+  $user = User::getByUsername($params['username']);
 
   if (!$user) {
-    $error = 'Unknown username: <b>'.$_POST['username'].'</b>';
+    $error = 'Unknown username: <b>'.$params['username'].'</b>';
   }
-  else if (!$user->logIn($_POST['password'])) {
-    $error = 'Bad password for <b>'.$_POST['username'].'</b>.';
+  else if (!$user->logIn($params['password'])) {
+    $error = 'Bad password for <b>'.$params['username'].'</b>.';
   } else {
     // log in success!
     go_home();
@@ -50,7 +52,7 @@ if ($error) {
   <td>
     <label id="label_username" for="username">Username:</label>
   </td><td>
-    <input id="username" class="inputtext" type="text" size="20" value="<?php echo $_POST['username']; ?>" name="username"/>
+    <input id="username" class="inputtext" type="text" size="20" value="<?php echo $params['username']; ?>" name="username"/>
   </td>
  </tr>
  <tr>
