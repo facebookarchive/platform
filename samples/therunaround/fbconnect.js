@@ -17,8 +17,11 @@ function ensure_init(callback) {
     callback();
   } else {
     FB_RequireFeatures(["XFBML", "CanvasUtil"], function() {
-        FB.FBDebug.LogLevel = 4;
+        // xd_receiver.php is a relative path here, because The Run Around
+        // could be installed in a subdirectory
+        // you should prefer an absolute URL (like "/xd_receiver.php") for more accuracy
         FB.Facebook.init(window.api_key, "xd_receiver.php");
+
         window.is_initialized = true;
         callback();
       });
@@ -26,7 +29,17 @@ function ensure_init(callback) {
 }
 
 /*
- * Runs on every page load.
+ * The facebook_onload statement is printed out in the PHP. If the user's logged in
+ * status has changed since the last page load, then refresh the page to pick up
+ * the change.
+ *
+ * This helps enforce the concept of "single sign on", so that if a user is signed into
+ * Facebook when they visit your site, they will be automatically logged in -
+ * without any need to click the login button.
+ *
+ * @param already_logged_into_facebook  reports whether the server thinks the user
+ *                                      is logged in, based on their cookies
+ *
  */
 function facebook_onload(already_logged_into_facebook) {
   // user state is either: has a session, or does not.
@@ -42,7 +55,7 @@ function facebook_onload(already_logged_into_facebook) {
           }
 
           // otherwise, refresh to pick up the state change
-          go_home();
+          refresh_page();
         });
     });
 }
@@ -58,7 +71,7 @@ function facebook_onload(already_logged_into_facebook) {
  *                              linked to a currently logged in user, or used
  *                              to create a new account anyway
  */
-function facebook_button_onclick(link_to_current_user) {
+function facebook_button_onclick() {
 
   ensure_init(function() {
       FB.Facebook.get_sessionState().waitUntilReady(function() {
@@ -66,23 +79,20 @@ function facebook_button_onclick(link_to_current_user) {
             FB.Facebook.apiClient.get_session().uid :
             null;
 
+          // probably should give some indication of failure to the user
           if (!user) {
-            // probably should give some indication of failure to the user
             return;
           }
 
-          // don't pass the user back raw to the server - it's too easy to spoof
-          // better to just tell them that the session is ready, and let facebook
-          // figure it out based on the cookies and signature
-          var params = 'save=1';
+          // The Facebook Session has been set in the cookies,
+          // which will be picked up by the server on the next page load
+          // so refresh the page, and let all the account linking be
+          // handled on the server side
 
-          if (link_to_current_user) {
-            params += '&link_to_current_user=1';
-          }
-
-          ajax('ajax.php', params, function(text) {
-              go_home();
-            });
+          // This could be done a myriad of ways; for a page with more content,
+          // you could do an ajax call for the account linking, and then
+          // just replace content inline without a full page refresh.
+          refresh_page();
         });
     });
 }
@@ -93,11 +103,8 @@ function facebook_button_onclick(link_to_current_user) {
  * If you have a small amount of Facebook-specific content on a large page,
  * then you could change it in Javascript without refresh.
  */
-function go_home() {
-  // prevent the infinite redirect
-  if (window.location != 'index.php?refreshed') {
-    window.location = 'index.php?refreshed';
-  }
+function refresh_page() {
+  window.location = 'index.php';
 }
 
 /*
