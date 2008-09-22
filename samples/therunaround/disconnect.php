@@ -1,6 +1,8 @@
 <?php
 
-include_once 'lib/core.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
+
 echo render_header();
 
 $user = User::getLoggedIn();
@@ -25,7 +27,7 @@ if ($error) {
 
 ?>
 
-<h3> Are you sure you want to disconnect your Facebook account? </h3>
+<h3>Are you sure you want to disconnect your Facebook account?</h3>
 
 <p>
 Your Facebook information and friend connections will be deleted. Any information you entered on this site will remain.

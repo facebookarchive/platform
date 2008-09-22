@@ -1,15 +1,5 @@
 <?php
 
-  /*
-   * This file contains functions that make code elsewhere clear,
-   * but aren't very interesting and aren't really related to connect.
-   */
-
-include_once 'user.php';
-include_once 'run.php';
-include_once 'display.php';
-include_once 'config.php';
-
 define ('PASSWORD_PLACEHOLDER', '********');
 
 // if this is set on by your webserver, then client access doesn't work

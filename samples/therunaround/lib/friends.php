@@ -1,8 +1,5 @@
 <?php
 
-include_once 'lib/fbconnect.php';
-include_once 'lib/user.php';
-
 function get_all_friends($user) {
   $query = 'SELECT uid2 AS uid FROM friend WHERE uid1 = ' . $user->fb_uid;
   return facebook_client()->api_client->fql_query($query);

@@ -2,10 +2,7 @@
 
 /*
  * Facebook-specific functions.
- *
  */
-
-include_once 'facebook-client/facebook.php';
 
 /*
  * Renders the JS necessary for any Facebook interaction to work.
@@ -13,14 +10,9 @@ include_once 'facebook-client/facebook.php';
 function render_fbconnect_init_js() {
   $html = sprintf(
     '<script src="%s/js/api_lib/v0.4/FeatureLoader.js.php" type="text/javascript"></script>
-     <script  type="text/javascript">window.api_key="'.get_api_key().'";</script>
+     <script type="text/javascript">window.api_key="'.get_api_key().'";</script>
      <script src="fbconnect.js" type="text/javascript"></script>',
     get_static_root());
-
-  $html .= '<script type="text/javascript">'
-    .'FB.FBDebug.logLevel = 4; '
-    .'FB.FBDebug.isEnabled = true;'
-    .'</script>';
 
   $already_logged_in = facebook_client()->get_loggedin_user() ? "true" : "false";
   onloadRegister(sprintf("facebook_onload(%s);", $already_logged_in));
@@ -30,14 +22,17 @@ function render_fbconnect_init_js() {
 
 /*
  * Render a custom button to log in via Facebook.
- * When the button is clicked, the facebook_button_onclick JS function is fired. That triggers the Facebook JS library to
- * authenticate the user, and sets up a handler for when the authentication is complete.
+ * When the button is clicked, the facebook_button_onclick JS function is fired.
+ * That triggers the Facebook JS library to authenticate the user, and sets up
+ * a handler for when the authentication is complete.
  *
  * @param $size   size of the button. one of ('small', 'medium', 'large')
  *
  */
 function render_fbconnect_button($size='medium') {
-  return '<fb:login-button size="'.$size.'" onclick="facebook_button_onclick();"></fb:login-button>';
+  return '<fb:login-button '.
+    'size="'.$size.'" background="light" length="long" '.
+    'onclick="facebook_button_onclick();"></fb:login-button>';
 }
 
 /*
@@ -48,13 +43,9 @@ function render_fbconnect_button($size='medium') {
  * @param $run    the run to publish in feed
  */
 function register_feed_form_js($run) {
-  $template_data = array('running-picture' => '<img src="http://www.midwinter.com/~jrosenstein/runaround_feed.jpg" />',
-                         'location' => $run->route,
-                         'distance' => $run->miles . ' mile');
-
   onloadRegister(sprintf("facebook_publish_feed_story(%d, %s); ",
                          get_feed_bundle_id(),
-                         json_encode($template_data)));
+                         json_encode($run->getTemplateData())));
 }
 
 /*
@@ -166,7 +157,7 @@ function facebook_get_fields($fb_uid, $fields) {
 function email_get_public_hash($email) {
   if ($email != null) {
     $email = trim(strtolower($email));
-    return crc32($email) . '_' . md5($email);
+    return sprintf("%u", crc32($email)) . '_' . md5($email);
   } else {
     return '';
   }

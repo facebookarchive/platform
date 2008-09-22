@@ -1,12 +1,11 @@
 <?php
 
-  /*
-   * Form handler for the login submission.
-   *
-   */
+/*
+ * Form handler for the login submission.
+ */
 
-include_once 'lib/core.php';
-include_once 'lib/fbconnect.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
 
 if (User::getLoggedIn()) {
   go_home();

@@ -1,10 +1,7 @@
 <?php
 
-include_once 'fbconnect.php';
-
 /*
  * Show the header that goes at the top of each page.
- *
  */
 function render_header() {
   // Might want to serve this out of a canvas sometimes to test
@@ -55,7 +52,7 @@ function render_header() {
     $html .= '<div class="account_links">';
     $html .= '<a href="account.php">Account Settings</a> | ';
     if ($user->is_facebook_user()) {
-      $html .= sprintf('<a href="#" onclick="FB.Connect.logoutAndRedirect(\'%s\')">'
+      $html .= sprintf('<a href="#" onclick="FB.Connect.logout(function() { refresh_page(); })">'
                        .'Logout of Facebook'
                        //.'<img src="images/fbconnect_logout.png">'
                        .'</a>',
@@ -144,10 +141,10 @@ function render_logged_out_index() {
   $html .= '<p>This is a simple site where you can log your runs and chart progress on your '
     .'workout routine.</p>';
 
-  $html .= '<div class="login_prompt">Log in now to track your runs.</div>';
 
   $html .= '<div class="clearfix"><form action="login.php" method="post">'
     . '<div class="login_sector">'
+    . '<div class="login_prompt"><b>Login</b>:</div>'
     .'<div class="clearfix"><label>Username:</label><input name="username" class="inputtext" type="text" size="20" value="" /></div> '
       .'<div class="clearfix"><label>Password:</label><input name="password" class="inputtext" type="password" size="20" value=""/></div> '
       .'<input id="submit" class="inputsubmit" value="Login" name="submit" type="submit" />'
@@ -155,7 +152,8 @@ function render_logged_out_index() {
 
   if (is_fbconnect_enabled()) {
     $html .= '<div class="login_sector_fb">';
-    $html .= render_fbconnect_button();
+    $html .= '<div class="login_prompt">Or <b>login</b> with Facebook:</div>';
+    $html .= render_fbconnect_button('medium');
     $html .= '</div>';
   }
 
@@ -171,22 +169,9 @@ function render_logged_out_index() {
 }
 
 function render_add_run_table($user) {
-
   $html  = '<h3>Where did you run recently?</h3>';
   $html .= '<form action="index.php" method="post">';
-  $html .= '<table>';
-  $html .= render_text_editor_row('route', 'Where did you go?');
-  $html .= render_text_editor_row('miles', 'Number of Miles');
-  $html .= '<tr><td>Date (MM/DD/YYYY)</td>'
-    .'<td>'
-    .'<input id="date_month" name="date_month" type="text" size="2" maxlength="2" /> '
-    .'/<input id="date_day" name="date_day" type="text" size="2" maxlength="2" /> '
-    .'/<input id="date_year" name="date_year" type="text" size="4" maxlength="4" /> '
-    . ' | ' . render_populate_date_link('Today')
-    . ' | ' . render_populate_date_link('Yesterday')
-    .'</td>'
-    .'</tr>';
-  $html .= '</table>';
+  $html .= render_add_run_table_fields();
   if ($user->is_facebook_user()) {
     $style = '';
   } else {
@@ -201,6 +186,27 @@ function render_add_run_table($user) {
   $html .= render_input_button('Add Run', 'submit');
   $html .= '</form>';
 
+  return $html;
+}
+
+/*
+ * Renders input fields for adding run.  Used by both index.php and
+ * handlers/self_publisher.php.
+ */
+function render_add_run_table_fields() {
+  $html  = '<table class="add_run_table">';
+  $html .= render_text_editor_row('route', 'Where did you go?');
+  $html .= render_text_editor_row('miles', 'Number of Miles');
+  $html .= '<tr><td class="editor_key"><label>Date (MM/DD/YYYY)</label></td>'
+    .'<td class="editor_value">'
+    .'<input id="date_month" class="inputtext datefield" name="date_month" type="text" size="2" maxlength="2" /> '
+    .'/<input id="date_day" class="inputtext datefield" name="date_day" type="text" size="2" maxlength="2" /> '
+    .'/<input id="date_year" class="inputtext datefield" name="date_year" type="text" size="4" maxlength="4" /> '
+    . ' | ' . render_populate_date_link('Today')
+    . ' | ' . render_populate_date_link('Yesterday')
+    .'</td>'
+    .'</tr>';
+  $html .= '</table>';
   return $html;
 }
 
@@ -253,13 +259,13 @@ function render_populate_date_link($datestr) {
   $month = date('m', $time);
   $day = date('d', $time);
   $year = date('Y', $time);
-  return '<a href="#" onclick="populate_date(\''.$month.'\', \''.$day.'\', \''.$year.'\'); return false;">'.$datestr.'</a>';
+  return '<a onclick="populate_date(\''.$month.'\', \''.$day.'\', \''.$year.'\'); return false;">'.$datestr.'</a>';
 }
 
 function render_text_editor_row($id, $label, $value='', $size=20, $after_input='') {
-  return '<tr><td>'
+  return '<tr><td class="editor_key">'
     .'<label id="label_'.$id.'" for="'.$id.'">'.$label.'</label>'
-    .'</td><td>'
+    .'</td><td class="editor_value">'
     .'<input id="'.$id.'" class="inputtext" type="text" size="'.$size.'" value="'.$value.'" name="'.$id.'"/>'
     .$after_input
     .'</td></tr>';

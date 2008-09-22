@@ -6,7 +6,9 @@
    *
    */
 
-include  'lib/core.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
+
 $user = User::getLoggedIn();
 if ($user) {
   $user->logOut();

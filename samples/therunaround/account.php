@@ -1,6 +1,8 @@
 <?php
 
-include_once 'lib/core.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
+
 echo render_header();
 
 $user = User::getLoggedIn();
@@ -44,14 +46,14 @@ if (is_fbconnect_enabled()) {
     // account. So they should be given the opportunity to Disconnect and maintain their account
     if ($user->hasPassword()) {
       echo '<h3>Connected To Facebook</h3>';
-      echo '<p> Your account is linked with a Facebook account. </p>';
+      echo '<p>Your account is linked with a Facebook account.</p>';
       echo '<a href="disconnect.php">Disconnect from Facebook</a>';
     }
 
   } else {
     echo '<h3>Connect with Facebook</h3>';
     echo '<p>Do you have a Facebook account? Connect it with The Run Around to share your information here, and see which of your friends are here.</p>';
-    echo render_fbconnect_button();
+    echo render_fbconnect_button('large');
   }
 }
 

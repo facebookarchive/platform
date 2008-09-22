@@ -1,6 +1,8 @@
 <?php
 
-include_once 'lib/core.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
+
 echo render_header();
 
 if ($user = User::getLoggedIn()) {
@@ -44,11 +46,11 @@ if ($error) {
  Use Facebook to register for The Run Around:<br/><br />
 
 <?php
-echo render_fbconnect_button();
+echo render_fbconnect_button('large');
 ?>
 </div>
 <div class="login_sector_fb">
-<h2> Register </h2>
+<h2>Register</h2>
 <form action="register.php" method="post">
 <table>
   <tr>

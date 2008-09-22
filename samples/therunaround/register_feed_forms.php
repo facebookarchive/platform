@@ -7,8 +7,8 @@
    * Copy/paste the resulting bundle ID and put it into config.php.
    */
 
-include_once 'lib/fbconnect.php';
-include_once 'lib/core.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
 
 echo render_header();
 

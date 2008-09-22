@@ -82,12 +82,14 @@ img {
   padding: 3px;
   width: 100px;
 }
+
 #signin .inputsubmit {
   border: 0pt none;
   cursor: pointer;
   background: #9999EE;
   font-size: 11px;
 }
+
 #signin .fbconnect {
   vertical-align: bottom;
 }
@@ -328,7 +330,7 @@ img {
 }
 
 .bluebox label {
-  width: 120px;
+  width: 130px;
 }
 
 .bluebox h3 {
@@ -407,6 +409,10 @@ img {
     margin: 0;
     padding: 4px;
     background-color: #FFC;
+}
+
+.datefield {
+  width: auto;
 }
 
 /* hacky using tables for layout */

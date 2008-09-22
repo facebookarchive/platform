@@ -17,6 +17,8 @@ function ensure_init(callback) {
     callback();
   } else {
     FB_RequireFeatures(["XFBML", "CanvasUtil"], function() {
+        FB.FBDebug.logLevel = 4;
+        FB.FBDebug.isEnabled = true;
         // xd_receiver.php is a relative path here, because The Run Around
         // could be installed in a subdirectory
         // you should prefer an absolute URL (like "/xd_receiver.php") for more accuracy

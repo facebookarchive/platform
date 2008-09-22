@@ -1,5 +1,7 @@
 <?php
-include 'lib/core.php';
+
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
 
 // cache the xd_receiver
 header('Cache-Control: max-age=225065900');
@@ -25,7 +27,6 @@ This is a cross domain (XD) receiver page. It needs to be placed on your domain 
 
 <?php
   echo '<script src="'.get_static_root().'/js/api_lib/v0.4/XdCommReceiver.debug.js" type="text/javascript"></script>';
-
 ?>
 </body>
 </html>

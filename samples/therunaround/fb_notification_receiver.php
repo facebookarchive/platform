@@ -8,8 +8,8 @@
    * This is that post-authorize-url.
    */
 
-include_once 'lib/core.php';
-
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
 
 $fb = facebook_client();
 $fb_uid = $fb->get_loggedin_user();
@@ -25,5 +25,4 @@ foreach ($account_ids as $account_id) {
     $user = User::getByUsername($account_id);
     $user->connectWithFacebookUID($fb_uid);
     $user->save();
-    error_log("Connected user $account_id with facebook user id $fb_uid");
 }

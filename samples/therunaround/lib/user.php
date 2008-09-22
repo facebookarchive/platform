@@ -1,7 +1,7 @@
 <?php
 
 define('USER_COOKIE_NAME', 'rb_current_user');
-define('RECENT_RUN_WINDOW', 7 * 24 * 60 * 60); // "Recent" runs means last 7 days
+define('MAX_DISPLAY_RUNS', 25); // Maximum number of runs to display
 
 /*
  * This is a pretty generic user object.
@@ -428,8 +428,8 @@ class User {
 
   function getRuns() {
     if ($this->runs === null) {
-      $ret = queryf('SELECT * FROM runs WHERE username = %s AND date > %d ORDER BY date DESC',
-                    $this->username, time() - RECENT_RUN_WINDOW);
+      $ret = queryf('SELECT * FROM runs WHERE username = %s ORDER BY date DESC LIMIT %d',
+                    $this->username, MAX_DISPLAY_RUNS);
       if (!$ret) {
         return null;
       }

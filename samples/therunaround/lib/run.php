@@ -8,10 +8,20 @@ class Run {
 
 
   function __construct($user, $params) {
-    $this->date = $params['date'];
+    if (!empty($params['date'])) {
+      $this->date = $params['date'];
+    } else {
+      $this->date = mktime(0,0,0,$params['date_month'],$params['date_day'],$params['date_year']);
+    }
     $this->miles = $params['miles'];
     $this->route = $params['route'];
     $this->username = $user->username;
+  }
+
+  function getTemplateData() {
+    return array('running-picture' => '<img src="http://www.midwinter.com/~jrosenstein/runaround_feed.jpg" />',
+                 'location' => $this->route,
+                 'distance' => $this->miles . ' mile');
   }
 
   function save() {

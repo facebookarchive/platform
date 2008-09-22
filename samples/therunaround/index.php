@@ -1,7 +1,7 @@
 <?php
 
-include_once 'lib/core.php';
-include_once 'lib/friends.php';
+define(MAIN_PATH, realpath('.'));
+include_once MAIN_PATH.'/init.php';
 
 echo render_header();
 
@@ -24,7 +24,6 @@ $params = parse_http_args($_POST, array('time',
 // If the user has added a run, then handle the form post
 
 if (!empty($params['miles'])) {
-  $params['date'] = mktime(0,0,0,$params['date_month'],$params['date_day'],$params['date_year']);
   $run = new Run($user, $params);
   if (!$run->save()) {
     echo render_error('Something went wrong while saving the run.');
@@ -32,7 +31,8 @@ if (!empty($params['miles'])) {
     $success = 'Added a new run!';
 
     // This will only be true if the checkbox on the previous page was checked
-    // The feed_loading div will be killed by JS that runs once the feed form is generated (since it can sometimes take a second or two)
+    // The feed_loading div will be killed by JS that runs once the feed form
+    // is generated  (since it can sometimes take a second or two)
 
     if ($params['publish_to_facebook']) {
       register_feed_form_js($run);
@@ -83,6 +83,11 @@ if ($runs) {
 
 if ($user->is_facebook_user()) {
   echo '<div class="bluebox friends_box">';
+
+  echo '<h3>Feed</h3>';
+  echo '<fb:serverfbml fbml="<fb:feed />"></fb:serverfbml>';
+  echo '<br />';
+
   echo '<h3>Friends</h3>';
 
   $friends = get_connected_friends($user);
