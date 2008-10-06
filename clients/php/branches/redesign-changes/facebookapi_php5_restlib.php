@@ -234,6 +234,52 @@ function toggleDisplay(id, type) {
       return $this->call_method('facebook.auth.revokeAuthorization', array());
   }
 
+ /**
+  * This method is used to create an association between an external user
+  * account and a Facebook user account, as per Facebook Connect.
+  *
+  * This method takes an array of account data, including a required email_hash and
+  * optional account data. For each connected account, if the user exists,
+  * the information is added to the set of the user's connected accounts.
+  * If the user has already authorized the site, the connected account is added
+  * in the confirmed state. If the user has not yet authorized the site, the
+  * connected account is added in the pending state.
+  *
+  * This is designed to help Facebook Connect
+  * recognize when two Facebook friends are both members of
+  * a external site, but perhaps are not aware of it.  The Connect dialog(see
+  * fb:connect-form) is used when friends can be identified through these email
+  * hashes. See http://wiki.developers.facebook.com/index.php/Connect.registerUsers
+  * for further details.
+  *
+  * @param mixed $accounts A (JSON-encoded) array of arrays, where each array
+  *                        has three properties:
+  *                        'email_hash'  (req) - public email hash of account
+  *                        'account_id'  (opt) - remote account id;
+  *                        'account_url' (opt) - url to remote account;
+  *
+  * @return array  The list of email hashes for the successfully registered
+  *                  accounts.
+  *
+  */
+  public function connect_registerUsers($accounts) {
+    return $this->call_method('facebook.connect.registerUsers',
+        array('accounts' => $accounts));
+  }
+
+ /**
+  *  Unregisters a set of accounts registered using connect.registerUsers.
+  *
+  * @param  array  $email_hashes  The (JSON-encoded) list of email hashes to be
+  *                                 unregistered.
+  * @return array  The list of email hashes which have been successfully
+  *                  unregistered.
+  */
+  public function connect_unregisterUsers($email_hashes) {
+    return $this->call_method('facebook.connect.unregisterUsers',
+        array('email_hashes' => $email_hashes));
+  }
+
   /**
    * Returns events according to the filters specified.
    * @param int $uid Optional: User associated with events.
@@ -396,8 +442,9 @@ function toggleDisplay(id, type) {
 
   public function &feed_registerTemplateBundle($one_line_story_templates,
                                                $short_story_templates = array(),
-                                               $full_story_template = null)
-  {
+                                               $full_story_template = null,
+                                               $action_links = array()) {
+
     $one_line_story_templates = json_encode($one_line_story_templates);
 
     if (!empty($short_story_templates)) {
@@ -408,32 +455,37 @@ function toggleDisplay(id, type) {
       $full_story_template = json_encode($full_story_template);
     }
 
+    if (isset($action_links)) {
+      $action_links = json_encode($action_links);
+    }
+
     return $this->call_method('facebook.feed.registerTemplateBundle',
                               array('one_line_story_templates' => $one_line_story_templates,
                                     'short_story_templates' => $short_story_templates,
-                                    'full_story_template' => $full_story_template));
+                                    'full_story_template' => $full_story_template,
+                                    'action_links' => $action_links));
   }
 
-  public function &feed_getRegisteredTemplateBundles()
-  {
+  public function &feed_getRegisteredTemplateBundles() {
     return $this->call_method('facebook.feed.getRegisteredTemplateBundles', array());
   }
 
-  public function &feed_getRegisteredTemplateBundleByID($template_bundle_id)
-  {
+  public function &feed_getRegisteredTemplateBundleByID($template_bundle_id) {
     return $this->call_method('facebook.feed.getRegisteredTemplateBundleByID',
                               array('template_bundle_id' => $template_bundle_id));
   }
 
-  public function &feed_deactivateTemplateBundleByID($template_bundle_id)
-  {
+  public function &feed_deactivateTemplateBundleByID($template_bundle_id) {
     return $this->call_method('facebook.feed.deactivateTemplateBundleByID',
                               array('template_bundle_id' => $template_bundle_id));
   }
 
+  const STORY_SIZE_ONE_LINE = 1;
+  const STORY_SIZE_SHORT = 2;
+  const STORY_SIZE_FULL = 4;
   public function &feed_publishUserAction($template_bundle_id, $template_data,
-                                          $target_ids='', $body_general='')
-  {
+                                          $target_ids='', $body_general='',
+                                          $story_size = FacebookRestClient::STORY_SIZE_ONE_LINE) {
     if (is_array($template_data)) {
       $template_data = json_encode($template_data);
     } // allow client to either pass in JSON or an assoc that we JSON for them
@@ -447,7 +499,8 @@ function toggleDisplay(id, type) {
                               array('template_bundle_id' => $template_bundle_id,
                                     'template_data' => $template_data,
                                     'target_ids' => $target_ids,
-                                    'body_general' => $body_general));
+                                    'body_general' => $body_general,
+                                    'story_size' => $story_size));
   }
 
   /**
