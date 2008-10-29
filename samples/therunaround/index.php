@@ -83,11 +83,6 @@ if ($runs) {
 
 if ($user->is_facebook_user()) {
   echo '<div class="bluebox friends_box">';
-
-  echo '<h3>Feed</h3>';
-  echo '<fb:serverfbml fbml="<fb:feed />"></fb:serverfbml>';
-  echo '<br />';
-
   echo '<h3>Friends</h3>';
 
   $friends = get_connected_friends($user);

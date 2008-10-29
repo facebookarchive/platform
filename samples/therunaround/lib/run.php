@@ -19,7 +19,7 @@ class Run {
   }
 
   function getTemplateData() {
-    return array('running-picture' => '<img src="http://www.midwinter.com/~jrosenstein/runaround_feed.jpg" />',
+    return array('running-picture' => '<img src="http://www.somethingtoputhere.com/therunaround/images/runaround_feed.jpg" />',
                  'location' => $this->route,
                  'distance' => $this->miles . ' mile');
   }

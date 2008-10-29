@@ -10,7 +10,12 @@
 function render_fbconnect_init_js() {
   $html = sprintf(
     '<script src="%s/js/api_lib/v0.4/FeatureLoader.js.php" type="text/javascript"></script>
-     <script type="text/javascript">window.api_key="'.get_api_key().'";</script>
+     <script type="text/javascript">FB_Init("'.get_api_key().'", "xd_receiver.php");
+        FB_Call(function() {
+          FB.FBDebug.logLevel = 4;
+          FB.FBDebug.isEnabled = true;
+        });
+     </script>
      <script src="fbconnect.js" type="text/javascript"></script>',
     get_static_root());
 

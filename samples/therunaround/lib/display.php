@@ -28,7 +28,6 @@ function render_header() {
 
   if (is_fbconnect_enabled()) {
     ensure_loaded_on_correct_url();
-    $html .= render_fbconnect_init_js();
   }
 
   $html .='
@@ -115,6 +114,10 @@ function render_footer() {
   $html = '</div>' .
     '<div class="footer_stuff">This is an awesome running app.</div>';
 
+  if (is_fbconnect_enabled()) {
+    $html .= render_fbconnect_init_js();
+  }
+
   // Print out all onload function calls
   if ($onload_js) {
     $html .= '<script type="text/javascript">'
@@ -133,7 +136,7 @@ function render_footer() {
  */
 function render_logged_out_index() {
 
-  $html = '<img src="http://www.midwinter.com/~jrosenstein/runaround_image.jpg" class="welcome_img" />';
+  $html = '<img src="http://www.somethingtoputhere.com/therunaround/images/runaround_image.jpg" class="welcome_img" />';
 
   $html .= '<div class="welcome_dialog">';
   $html .= '<h3>Welcome to the Run Around</h3>';

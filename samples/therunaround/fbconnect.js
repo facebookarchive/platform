@@ -1,36 +1,5 @@
 
 /*
- * API key, this should be initialized before any another function in this file is called.
- */
-var is_initialized = false;
-
-/*
- * Ensure Facebook app is initialized and call callback afterward
- *
- */
-function ensure_init(callback) {
-  if(!window.api_key) {
-    window.alert("api_key is not set");
-  }
-
-  if(window.is_initialized) {
-    callback();
-  } else {
-    FB_RequireFeatures(["XFBML", "CanvasUtil"], function() {
-        FB.FBDebug.logLevel = 4;
-        FB.FBDebug.isEnabled = true;
-        // xd_receiver.php is a relative path here, because The Run Around
-        // could be installed in a subdirectory
-        // you should prefer an absolute URL (like "/xd_receiver.php") for more accuracy
-        FB.Facebook.init(window.api_key, "xd_receiver.php");
-
-        window.is_initialized = true;
-        callback();
-      });
-  }
-}
-
-/*
  * The facebook_onload statement is printed out in the PHP. If the user's logged in
  * status has changed since the last page load, then refresh the page to pick up
  * the change.
@@ -46,7 +15,7 @@ function ensure_init(callback) {
 function facebook_onload(already_logged_into_facebook) {
   // user state is either: has a session, or does not.
   // if the state has changed, detect that and reload.
-  ensure_init(function() {
+  FB_Call(function() {
       FB.Facebook.get_sessionState().waitUntilReady(function(session) {
           var is_now_logged_into_facebook = session ? true : false;
 
@@ -75,7 +44,7 @@ function facebook_onload(already_logged_into_facebook) {
  */
 function facebook_button_onclick() {
 
-  ensure_init(function() {
+  FB_Call(function() {
       FB.Facebook.get_sessionState().waitUntilReady(function() {
           var user = FB.Facebook.apiClient.get_session() ?
             FB.Facebook.apiClient.get_session().uid :
@@ -113,7 +82,7 @@ function refresh_page() {
  * Prompts the user to grant a permission to the application.
  */
 function facebook_prompt_permission(permission) {
-  ensure_init(function() {
+  FB_Call(function() {
     FB.Connect.showPermissionDialog(permission);
   });
 }
@@ -126,7 +95,7 @@ function facebook_prompt_permission(permission) {
  */
 function facebook_publish_feed_story(form_bundle_id, template_data) {
   // Load the feed form
-  ensure_init(function() {
+  FB_Call(function() {
           FB.Connect.showFeedDialog(form_bundle_id, template_data);
           //FB.Connect.showFeedDialog(form_bundle_id, template_data, null, null, FB.FeedStorySize.shortStory, FB.RequireConnect.promptConnect);
 
@@ -143,7 +112,7 @@ function facebook_publish_feed_story(form_bundle_id, template_data) {
  * not connected, and shows the checkbox if that's true.
  */
 function facebook_show_feed_checkbox() {
-  ensure_init(function() {
+  FB_Call(function() {
       FB.Connect.get_status().waitUntilReady(function(status) {
           if (status != FB.ConnectState.userNotLoggedIn) {
             // If the user is currently logged into Facebook, but has not
