@@ -1,4 +1,4 @@
-<a href="#" onclick="do_colors(this); return false">Hello World!</a>
+<a href="#" id="helloWorld" onclick="do_colors(this); return false">Hello World!</a>
 <script><!--
 function random_int(lo, hi) {
   return Math.floor((Math.random() * (hi - lo)) + lo)

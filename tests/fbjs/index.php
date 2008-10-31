@@ -41,27 +41,27 @@ small {
 <h1>FBJS Test Suite</h1>
 <p>Welcome to the FBJS test suite. I'm glad you could make it.</p>
 
-<div><h2><span>Hello World</span></h2><small>Math, setStyle</small><div>
+<div><h2><span id="helloWorldTest">Hello World</span></h2><small>Math, setStyle</small><div>
 <?php include 'helloworld.php' ?>
 </div></div>
 
-<div><h2><span>AJAX</span></h2><small>Ajax, serialize</small><div>
+<div><h2><span id="ajaxTest">AJAX</span></h2><small>Ajax, serialize</small><div>
 <?php include 'ajax.php' ?>
 </div></div>
 
-<div><h2><span>Typeahead</span></h2><small>Events (focus, blur, keyup, keydown, keypress), DOM Manipulation, Prototyping</small><div>
+<div><h2><span id="typeaheadTest">Typeahead</span></h2><small>Events (focus, blur, keyup, keydown, keypress), DOM Manipulation, Prototyping</small><div>
 <?php include 'typeahead.php' ?>
 </div></div>
 
-<div><h2><span>Slider</span></h2><small>Events (mouse), DOM Manipulation, onload</small><div>
+<div><h2><span id="sliderTest">Slider</span></h2><small>Events (mouse), DOM Manipulation, onload</small><div>
 <?php include 'slider.php' ?>
 </div></div>
 
-<div><h2><span>Dialogs</span></h2><small>Ajax, setLocation, setStyle</small><div>
+<div><h2><span id="dialogsTest">Dialogs</span></h2><small>Ajax, setLocation, setStyle</small><div>
 <?php include 'dialogs.php' ?>
 </div></div>
 
-<div><h2><span>Build a Table</span></h2><small>DOM Manipulation \w Tables...</small><div>
+<div><h2><span id="tableTest">Build a Table</span></h2><small>DOM Manipulation \w Tables...</small><div>
 <?php include 'table.php' ?>
 </div></div>
 
