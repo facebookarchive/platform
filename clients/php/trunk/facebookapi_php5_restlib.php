@@ -31,12 +31,19 @@
 // +---------------------------------------------------------------------------+
 //
 
+include_once 'jsonwrapper/jsonwrapper.php';
 class FacebookRestClient {
   public $secret;
   public $session_key;
   public $api_key;
   public $friends_list; // to save making the friends.get api call, this will get prepopulated on canvas pages
-  public $added;        // to save making the users.isAppAdded api call, this will get prepopulated on canvas pages
+  public $user;
+  public $added;        // to save making the pages.isAppAdded api call, this will get prepopulated on canvas pages
+  public $is_user;
+  // we don't pass friends list to iframes, but we want to make
+  // friends_get really simple in the canvas_user (non-logged in) case.
+  // So we use the canvas_user as default arg to friends_get
+  public $canvas_user;
   public $batch_mode;
   private $batch_queue;
   private $call_as_apikey;
@@ -52,14 +59,16 @@ class FacebookRestClient {
    *                            directly accessing the $session_key member
    *                            variable.
    */
-  public function __construct($api_key, $secret, $session_key=null) {
+  public function __construct($api_key, $secret, $session_key=null, $user=null) {
     $this->secret       = $secret;
     $this->session_key  = $session_key;
     $this->api_key      = $api_key;
     $this->batch_mode = FacebookRestClient::BATCH_MODE_DEFAULT;
     $this->last_call_id = 0;
     $this->call_as_apikey = '';
-    $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
+      $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
+    $this->user = $user;
+
     if (!empty($GLOBALS['facebook_config']['debug'])) {
       $this->cur_id = 0;
       ?>
@@ -174,6 +183,17 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   * Creates an authentication token to be used as part of the desktop login
+   * flow.  For more information, please see
+   * http://wiki.developers.facebook.com/index.php/Auth.createToken.
+   *
+   * @return string An authentication token.
+   */
+  public function auth_createToken() {
+    return $this->call_method('facebook.auth.createToken', array());
+  }
+
+  /**
    * Returns the session information available after current user logs in.
    * @param string $auth_token the token returned by auth_createToken or
    *  passed back to your callback_url.
@@ -218,12 +238,69 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   * Revokes the user's agreement to the Facebook Terms of Service for your application.  If you call this
+   * method for one of your users, you will no longer be able to make API requests on their behalf until
+   * they again authorize your application. Use with care.
+   *
+   *  @return bool  true if revocation succeeds, false otherwise
+   */
+  public function auth_revokeAuthorization() {
+      return $this->call_method('facebook.auth.revokeAuthorization', array());
+  }
+
+ /**
+  * This method is used to create an association between an external user
+  * account and a Facebook user account, as per Facebook Connect.
+  *
+  * This method takes an array of account data, including a required email_hash and
+  * optional account data. For each connected account, if the user exists,
+  * the information is added to the set of the user's connected accounts.
+  * If the user has already authorized the site, the connected account is added
+  * in the confirmed state. If the user has not yet authorized the site, the
+  * connected account is added in the pending state.
+  *
+  * This is designed to help Facebook Connect
+  * recognize when two Facebook friends are both members of
+  * a external site, but perhaps are not aware of it.  The Connect dialog(see
+  * fb:connect-form) is used when friends can be identified through these email
+  * hashes. See http://wiki.developers.facebook.com/index.php/Connect.registerUsers
+  * for further details.
+  *
+  * @param mixed $accounts A (JSON-encoded) array of arrays, where each array
+  *                        has three properties:
+  *                        'email_hash'  (req) - public email hash of account
+  *                        'account_id'  (opt) - remote account id;
+  *                        'account_url' (opt) - url to remote account;
+  *
+  * @return array  The list of email hashes for the successfully registered
+  *                  accounts.
+  *
+  */
+  public function connect_registerUsers($accounts) {
+    return $this->call_method('facebook.connect.registerUsers',
+        array('accounts' => $accounts));
+  }
+
+ /**
+  *  Unregisters a set of accounts registered using connect.registerUsers.
+  *
+  * @param  array  $email_hashes  The (JSON-encoded) list of email hashes to be
+  *                                 unregistered.
+  * @return array  The list of email hashes which have been successfully
+  *                  unregistered.
+  */
+  public function connect_unregisterUsers($email_hashes) {
+    return $this->call_method('facebook.connect.unregisterUsers',
+        array('email_hashes' => $email_hashes));
+  }
+
+  /**
    * Returns events according to the filters specified.
    * @param int $uid Optional: User associated with events.
    *   A null parameter will default to the session user.
    * @param array $eids Optional: Filter by these event ids.
    *   A null parameter will get all events for the user.
-   * @param int $start_time Optional: Filter with this UTC as lower bound.
+   * @param int $start_time Optional: Filter with this unix time as lower bound.
    *   A null or zero parameter indicates no lower bound.
    * @param int $end_time Optional: Filter with this UTC as upper bound.
    *   A null or zero parameter indicates no upper bound.
@@ -233,7 +310,7 @@ function toggleDisplay(id, type) {
    *   rsvp status when filtering.
    * @return array of events
    */
-  public function &events_get($uid, $eids, $start_time, $end_time, $rsvp_status) {
+  public function &events_get($uid=null, $eids=null, $start_time=null, $end_time=null, $rsvp_status=null) {
     return $this->call_method('facebook.events.get',
         array(
         'uid' => $uid,
@@ -252,6 +329,56 @@ function toggleDisplay(id, type) {
   public function &events_getMembers($eid) {
     return $this->call_method('facebook.events.getMembers',
       array('eid' => $eid));
+  }
+
+  /**
+   * RSVPs the current user
+   * @param int $eid : event id
+   * @param string $rsvp_status : 'attending', 'unsure', or 'declined'
+   * @return bool  true if successful
+   */
+  public function &events_rsvp($eid, $rsvp_status) {
+    return $this->call_method('facebook.events.rsvp',
+        array(
+        'eid' => $eid,
+        'rsvp_status' => $rsvp_status));
+  }
+
+  /**
+   * Cancels an event. Only works for events application is admin of.
+   * @param int $eid : event id
+   * @param string $cancel_message : (optional) message to send to members of the event about why it is cancelled
+   * @return bool  true if successful
+   */
+  public function &events_cancel($eid, $cancel_message) {
+    return $this->call_method('facebook.events.cancel',
+        array(
+        'eid' => $eid,
+        'cancel_message' => $cancel_message));
+  }
+
+  /**
+   * Creates an event on behalf of the user is there is a session, otherwise on behalf of app.
+   * Successful creation guarantees app will be admin.
+   * @param assoc array $event_info : json encoded event information
+   * @return int  event id
+   */
+  public function &events_create($event_info) {
+    return $this->call_method('facebook.events.create',
+        array('event_info' => $event_info));
+  }
+
+  /**
+   * Edits an existing event. Only works for events application is admin of.
+   * @param int $eid : event id
+   * @param assoc array $event_info : json encoded event information
+   * @return bool  true if successful
+   */
+  public function &events_edit($eid, $event_info) {
+    return $this->call_method('facebook.events.edit',
+        array(
+        'eid' => $eid,
+        'event_info' => $event_info));
   }
 
   /**
@@ -327,6 +454,69 @@ function toggleDisplay(id, type) {
             'page_actor_id' => $page_actor_id));
   }
 
+  public function &feed_registerTemplateBundle($one_line_story_templates,
+                                               $short_story_templates = array(),
+                                               $full_story_template = null,
+                                               $action_links = array()) {
+
+    $one_line_story_templates = json_encode($one_line_story_templates);
+
+    if (!empty($short_story_templates)) {
+      $short_story_templates = json_encode($short_story_templates);
+    }
+
+    if (isset($full_story_template)) {
+      $full_story_template = json_encode($full_story_template);
+    }
+
+    if (isset($action_links)) {
+      $action_links = json_encode($action_links);
+    }
+
+    return $this->call_method('facebook.feed.registerTemplateBundle',
+                              array('one_line_story_templates' => $one_line_story_templates,
+                                    'short_story_templates' => $short_story_templates,
+                                    'full_story_template' => $full_story_template,
+                                    'action_links' => $action_links));
+  }
+
+  public function &feed_getRegisteredTemplateBundles() {
+    return $this->call_method('facebook.feed.getRegisteredTemplateBundles', array());
+  }
+
+  public function &feed_getRegisteredTemplateBundleByID($template_bundle_id) {
+    return $this->call_method('facebook.feed.getRegisteredTemplateBundleByID',
+                              array('template_bundle_id' => $template_bundle_id));
+  }
+
+  public function &feed_deactivateTemplateBundleByID($template_bundle_id) {
+    return $this->call_method('facebook.feed.deactivateTemplateBundleByID',
+                              array('template_bundle_id' => $template_bundle_id));
+  }
+
+  const STORY_SIZE_ONE_LINE = 1;
+  const STORY_SIZE_SHORT = 2;
+  const STORY_SIZE_FULL = 4;
+  public function &feed_publishUserAction($template_bundle_id, $template_data,
+                                          $target_ids='', $body_general='',
+                                          $story_size = FacebookRestClient::STORY_SIZE_ONE_LINE) {
+    if (is_array($template_data)) {
+      $template_data = json_encode($template_data);
+    } // allow client to either pass in JSON or an assoc that we JSON for them
+
+    if (is_array($target_ids)) {
+      $target_ids = json_encode($target_ids);
+      $target_ids = trim($target_ids, "[]"); // we don't want the square bracket delims
+    }
+
+    return $this->call_method('facebook.feed.publishUserAction',
+                              array('template_bundle_id' => $template_bundle_id,
+                                    'template_data' => $template_data,
+                                    'target_ids' => $target_ids,
+                                    'body_general' => $body_general,
+                                    'story_size' => $story_size));
+  }
+
   /**
    * Returns whether or not pairs of users are friends.
    * Note that the Facebook friend relationship is symmetric.
@@ -350,7 +540,12 @@ function toggleDisplay(id, type) {
     if (isset($this->friends_list)) {
       return $this->friends_list;
     }
-    return $this->call_method('facebook.friends.get', array());
+    $params = array();
+    if (isset($this->canvas_user)) {
+      $params['uid'] = $this->canvas_user;
+    }
+    return $this->call_method('facebook.friends.get', $params);
+
   }
 
   /**
@@ -491,9 +686,9 @@ function toggleDisplay(id, type) {
    * Sends a notification to the specified users.
    * @return (nothing)
    */
-  public function &notifications_send($to_ids, $notification) {
+  public function &notifications_send($to_ids, $notification, $type) {
     return $this->call_method('facebook.notifications.send',
-                              array('to_ids' => $to_ids, 'notification' => $notification));
+                              array('to_ids' => $to_ids, 'notification' => $notification, 'type' => $type));
   }
 
   /**
@@ -606,6 +801,23 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   * Returns the requested info fields for the requested set of users. No
+   * session key is required. Only data about users that have authorized
+   * your application will be returned.
+   *
+   * Check the wiki for fields that can be queried through this API call.
+   * Data returned from here should not be used for rendering to application
+   * users, use users.getInfo instead, so that proper privacy rules will be
+   * applied.
+   * @param array $uids an array of user ids
+   * @param array $fields an array of strings describing the info fields desired
+   * @return array of users
+   */
+  public function &users_getStandardInfo($uids, $fields) {
+    return $this->call_method('facebook.users.getStandardInfo', array('uids' => $uids, 'fields' => $fields));
+  }
+
+  /**
    * Returns the user corresponding to the current session object.
    * @return integer uid
    */
@@ -614,14 +826,37 @@ function toggleDisplay(id, type) {
   }
 
   /**
-   * Returns whether or not the user corresponding to the current session object has the app installed
+   * Returns whether or not the user corresponding to the current
+   *  session object has the give the app basic authorization.
    * @return boolean
    */
-  public function &users_isAppAdded($uid=null) {
-    if (isset($this->added)) {
-      return $this->added;
+  public function &users_isAppUser($uid=null) {
+    if ($uid === null && isset($this->is_user)) {
+      return $this->is_user;
     }
-    return $this->call_method('facebook.users.isAppAdded', array('uid' => $uid));
+
+    return $this->call_method('facebook.users.isAppUser', array('uid' => $uid));
+  }
+
+  /*
+   * Sets the users' current status message. Message does
+   * NOT contain the word "is" , so make sure to include
+   * a verb.
+   *
+   * Example: setStatus("is loving the API!")
+   * will produce the status "Luke is loving the API!"
+   *
+   * @param $status           text-only message to set
+   * @param $uid  (optional)  user to set for
+   * @return boolean
+   */
+  public function &users_setStatus($status, $uid=null) {
+    $args = array('status'               => $status,
+                  'status_includes_verb' => true);
+    if ($uid) {
+      $args['uid'] = $uid;
+    }
+    $this->call_method('facebook.users.setStatus', $args);
   }
 
   /**
@@ -629,21 +864,60 @@ function toggleDisplay(id, type) {
    * @param   string   $markup           The FBML that describes the profile presence of this app for the user
    * @param   int      $uid              The user
    * @param   string   $profile          Profile FBML
-   * @param   string   $profile_action   Profile action FBML
+   * @param   string   $profile_action   Profile action FBML (deprecated)
    * @param   string   $mobile_profile   Mobile profile FBML
+   * @param   string   $profile_main     Main Tab profile FBML
    * @return  array    A list of strings describing any compile errors for the submitted FBML
    */
-  function profile_setFBML($markup, $uid = null, $profile='', $profile_action='', $mobile_profile='') {
+  function profile_setFBML($markup, $uid = null, $profile='', $profile_action='', $mobile_profile='', $profile_main='') {
     return $this->call_method('facebook.profile.setFBML', array('markup' => $markup,
                                                                 'uid' => $uid,
                                                                 'profile' => $profile,
                                                                 'profile_action' => $profile_action,
-                                                                'mobile_profile' => $mobile_profile));
+                                                                'mobile_profile' => $mobile_profile,
+                                                                'profile_main' => $profile_main));
   }
 
-  public function &profile_getFBML($uid) {
-    return $this->call_method('facebook.profile.getFBML', array('uid' => $uid));
+  public function &profile_getFBML($uid, $type=null) {
+    return $this->call_method('facebook.profile.getFBML', array('uid' => $uid,
+                                                                'type' => $type));
   }
+
+  public function &profile_getInfo($uid=null) {
+    return $this->call_method('facebook.profile.getInfo', array('uid' => $uid));
+  }
+
+  public function &profile_getInfoOptions($field) {
+    return $this->call_method('facebook.profile.getInfoOptions',
+                              array('field' => $field));
+  }
+
+  public function profile_setInfoOptions($options, $field) {
+    return $this->call_method('facebook.profile.setInfoOptions',
+                              array('options' => json_encode($options),
+                                    'field'   => $field));
+  }
+
+  public function &profile_setInfo($title, $type, $info_fields, $uid=null) {
+    return $this->call_method('facebook.profile.setInfo',
+                              array('uid' => $uid,
+                                    'type' => $type,
+                                    'title'   => $title,
+                                    'info_fields' => json_encode($info_fields)));
+  }
+
+  public function &profile_addInfoItems($info_items, $uid=null) {
+    return $this->call_method('facebook.profile.addInfoItems',
+                              array('uid' => $uid,
+                                    'info_items' => json_encode($info_items)));
+  }
+
+  public function &profile_removeInfoItems($info_labels, $uid=null) {
+    return $this->call_method('facebook.profile.removeInfoItems',
+                              array('uid' => $uid,
+                                    'info_labels' => json_encode($info_labels)));
+  }
+
 
   public function &fbml_refreshImgSrc($url) {
     return $this->call_method('facebook.fbml.refreshImgSrc', array('url' => $url));
@@ -739,17 +1013,20 @@ function toggleDisplay(id, type) {
    *
    * @param  pref_id    preference identifier (0-200)
    * @param  value      preferece's value
+   * @param  uid        the user id (defaults to current session user)
    * @error
    *    API_EC_DATA_DATABASE_ERROR
    *    API_EC_PARAM
    *    API_EC_DATA_QUOTA_EXCEEDED
    *    API_EC_DATA_UNKNOWN_ERROR
+   *    API_EC_PERMISSION_OTHER_USER
    */
-  public function &data_setUserPreference($pref_id, $value) {
+  public function &data_setUserPreference($pref_id, $value, $uid = null) {
     return $this->call_method
       ('facebook.data.setUserPreference',
        array('pref_id' => $pref_id,
-             'value' => $value));
+             'value' => $value,
+             'uid' => $this->get_uid($uid)));
   }
 
   /**
@@ -758,49 +1035,57 @@ function toggleDisplay(id, type) {
    * @param  values     preferece values in an associative arrays
    * @param  replace    whether to replace all existing preferences or
    *                    merge into them.
+   * @param  uid        the user id (defaults to current session user)
    * @error
    *    API_EC_DATA_DATABASE_ERROR
    *    API_EC_PARAM
    *    API_EC_DATA_QUOTA_EXCEEDED
    *    API_EC_DATA_UNKNOWN_ERROR
+   *    API_EC_PERMISSION_OTHER_USER
    */
-  public function &data_setUserPreferences($values, $replace = false) {
+  public function &data_setUserPreferences($values, $replace = false, $uid = null) {
     return $this->call_method
       ('facebook.data.setUserPreferences',
        array('values' => json_encode($values),
-             'replace' => $replace));
+             'replace' => $replace,
+             'uid' => $this->get_uid($uid)));
   }
 
   /**
    * Get a user preference.
    *
    * @param  pref_id    preference identifier (0-200)
+   * @param  uid        the user id (defaults to current session user)
    * @return            preference's value
    * @error
    *    API_EC_DATA_DATABASE_ERROR
    *    API_EC_PARAM
    *    API_EC_DATA_QUOTA_EXCEEDED
    *    API_EC_DATA_UNKNOWN_ERROR
+   *    API_EC_PERMISSION_OTHER_USER
    */
-  public function &data_getUserPreference($pref_id) {
+  public function &data_getUserPreference($pref_id, $uid = null) {
     return $this->call_method
       ('facebook.data.getUserPreference',
-       array('pref_id' => $pref_id));
+       array('pref_id' => $pref_id,
+             'uid' => $this->get_uid($uid)));
   }
 
   /**
    * Get a user preference.
    *
-   * @return           preference values
+   * @param  uid        the user id (defaults to current session user)
+   * @return            preference values
    * @error
    *    API_EC_DATA_DATABASE_ERROR
    *    API_EC_DATA_QUOTA_EXCEEDED
    *    API_EC_DATA_UNKNOWN_ERROR
+   *    API_EC_PERMISSION_OTHER_USER
    */
-  public function &data_getUserPreferences() {
+  public function &data_getUserPreferences($uid = null) {
     return $this->call_method
       ('facebook.data.getUserPreferences',
-       array());
+       array('uid' => $this->get_uid($uid)));
   }
 
   /**
@@ -1595,23 +1880,55 @@ function toggleDisplay(id, type) {
   }
 
   /**
-   * Returns values for the specified daily metrics for the current
-   * application, in the given date range (inclusive).
+   * Returns values for the specified metrics for the current
+   * application, in the given time range.  The metrics are collected
+   * for fixed-length periods, and the times represent midnight at
+   * the end of each period.
    *
-   * @param start_date  unix time for the start of the date range
-   * @param end_date    unix time for the end of the date range
-   * @param metrics     list of daily metrics to look up
+   * @param start_time  unix time for the start of the range
+   * @param end_time    unix time for the end of the range
+   * @param period      number of seconds in the desired period
+   * @param metrics     list of metrics to look up
    * @return            a list of the values for those metrics
    */
-  public function &admin_getDailyMetrics($start_date, $end_date, $metrics) {
-    return $this->call_method('admin.getDailyMetrics',
-                              array('start_date' => $start_date,
-                                    'end_date' => $end_date,
+  public function &admin_getMetrics($start_time, $end_time, $period, $metrics) {
+    return $this->call_method('admin.getMetrics',
+                              array('start_time' => $start_time,
+                                    'end_time' => $end_time,
+                                    'period' => $period,
                                     'metrics' => json_encode($metrics)));
   }
 
+  /**
+   * Sets application restriction info
+   * Applications can restrict themselves to only a limted demography of users based on users' age and/or location
+   * or based on static predefined types specified by facebook for specifying diff age restriction for diff locations
+   *
+   * @param   restriction_info
+   * @return  bool
+   */
+  public function admin_setRestrictionInfo($restriction_info = null) {
+    $restriction_str = null;
+    if (!empty($restriction_info)) {
+      $restriction_str = json_encode($restriction_info);
+    }
+    return $this->call_method('admin.setRestrictionInfo',
+                              array('restriction_str' => $restriction_str));
+  }
 
-
+  /**
+   * Gets application restriction info
+   * Applications can restrict themselves to only a limted demography of users based on users' age and/or location
+   * or based on static predefined types specified by facebook for specifying diff age restriction for diff locations
+   *
+   * @return  bool
+   */
+  public function admin_getRestrictionInfo() {
+    return json_decode($this->call_method(
+                                'admin.getRestrictionInfo',
+                                array()),
+                       true);
+  }
 
   /* UTILITY FUNCTIONS */
 
@@ -1688,7 +2005,6 @@ function toggleDisplay(id, type) {
 
     $post_string = $this->create_post_string($method, $params);
 
-
     if (function_exists('curl_init')) {
       // Use CURL if installed...
       $ch = curl_init();
@@ -1738,6 +2054,11 @@ function toggleDisplay(id, type) {
     }
   }
 
+
+  private function get_uid($uid) {
+    return $uid ? $uid : $this->user;
+  }
+
 }
 
 
@@ -1775,6 +2096,8 @@ class FacebookAPIErrorCodes {
   const API_EC_PARAM_USER_FIELD = 111;
   const API_EC_PARAM_SOCIAL_FIELD = 112;
   const API_EC_PARAM_ALBUM_ID = 120;
+  const API_EC_PARAM_BAD_EID = 150;
+  const API_EC_PARAM_UNKNOWN_CITY = 151;
 
   /*
    * USER PERMISSIONS ERRORS
@@ -1783,6 +2106,8 @@ class FacebookAPIErrorCodes {
   const API_EC_PERMISSION_USER = 210;
   const API_EC_PERMISSION_ALBUM = 220;
   const API_EC_PERMISSION_PHOTO = 221;
+  const API_EC_PERMISSION_EVENT = 290;
+  const API_EC_PERMISSION_RSVP_EVENT = 299;
 
   const FQL_EC_PARSER = 601;
   const FQL_EC_UNKNOWN_FIELD = 602;
@@ -1823,10 +2148,14 @@ class FacebookAPIErrorCodes {
       API_EC_PARAM_USER_FIELD  => 'Invalid user info field',
       API_EC_PARAM_SOCIAL_FIELD => 'Invalid user field',
       API_EC_PARAM_ALBUM_ID    => 'Invalid album id',
+      API_EC_PARAM_BAD_EID     => 'Invalid eid',
+      API_EC_PARAM_UNKNOWN_CITY => 'Unknown city',
       API_EC_PERMISSION        => 'Permissions error',
       API_EC_PERMISSION_USER   => 'User not visible',
       API_EC_PERMISSION_ALBUM  => 'Album not visible',
       API_EC_PERMISSION_PHOTO  => 'Photo not visible',
+      API_EC_PERMISSION_EVENT  => 'Creating and modifying events required the extended permission create_event',
+      API_EC_PERMISSION_RSVP_EVENT => 'RSVPing to events required the extended permission rsvp_event',
       FQL_EC_PARSER            => 'FQL: Parser Error',
       FQL_EC_UNKNOWN_FIELD     => 'FQL: Unknown Field',
       FQL_EC_UNKNOWN_TABLE     => 'FQL: Unknown Table',

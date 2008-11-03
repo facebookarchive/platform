@@ -1,7 +1,8 @@
 <?php
+// Copyright 2004-2008 Facebook. All Rights Reserved.
 //
 // +---------------------------------------------------------------------------+
-// | Facebook Platform PHP5 client                                 |
+// | Facebook Platform PHP5 client                                             |
 // +---------------------------------------------------------------------------+
 // | Copyright (c) 2007 Facebook, Inc.                                         |
 // | All rights reserved.                                                      |
@@ -30,7 +31,6 @@
 // | For help with this library, contact developers-help@facebook.com          |
 // +---------------------------------------------------------------------------+
 //
-
 include_once 'facebookapi_php5_restlib.php';
 
 define('FACEBOOK_API_VALIDATION_ERROR', 1);
@@ -44,48 +44,124 @@ class Facebook {
 
   public $fb_params;
   public $user;
+  public $profile_user;
+  public $canvas_user;
 
+  /*
+   * Create a Facebook client like this:
+   *
+   * $fb = new Facebook(API_KEY, SECRET);
+   *
+   * This will automatically pull in any parameters, validate them against the
+   * session signature, and chuck them in the public $fb_params member variable.
+   *
+   * @param api_key                  your Developer API key
+   * @param secret                   your Developer API secret
+   * @param generate_session_secret  whether to automatically generate a session
+   *                                 if the user doesn't have one, but
+   *                                 there is an auth token present in the url,
+   */
   public function __construct($api_key, $secret, $generate_session_secret=false) {
     $this->api_key                 = $api_key;
     $this->secret                  = $secret;
     $this->generate_session_secret = $generate_session_secret;
-    $this->api_client = new FacebookRestClient($api_key, $secret);
-
     $this->validate_fb_params();
+
+    $defaultUser = null;
+    if ($this->user) {
+      $defaultUser = $this->user;
+    } else if ($this->profile_user) {
+      $defaultUser = $this->profile_user;
+    } else if ($this->canvas_user) {
+      $defaultUser = $this->canvas_user;
+    }
+
+    $this->api_client = new FacebookRestClient($api_key, $secret, null, $defaultUser);
+
+
     if (isset($this->fb_params['friends'])) {
       $this->api_client->friends_list = explode(',', $this->fb_params['friends']);
     }
     if (isset($this->fb_params['added'])) {
       $this->api_client->added = $this->fb_params['added'];
     }
+    if (isset($this->fb_params['canvas_user'])) {
+      $this->api_client->canvas_user = $this->fb_params['canvas_user'];
+    }
   }
 
+  /*
+   * Validates that the parameters passed in were sent from Facebook. It does so
+   * by validating that the signature matches one that could only be generated
+   * by using your application's secret key.
+   *
+   * Facebook-provided parameters will come from $_POST, $_GET, or $_COOKIE,
+   * in that order. $_POST and $_GET are always more up-to-date than cookies,
+   * so we prefer those if they are available.
+   *
+   * For nitty-gritty details of when each of these is used, check out
+   * http://wiki.developers.facebook.com/index.php/Verifying_The_Signature
+   *
+   * @param bool  resolve_auth_token  convert an auth token into a session
+   */
   public function validate_fb_params($resolve_auth_token=true) {
     $this->fb_params = $this->get_valid_fb_params($_POST, 48*3600, 'fb_sig');
+
+    // note that with preload FQL, it's possible to receive POST params in
+    // addition to GET, so use a different prefix to differentiate them
     if (!$this->fb_params) {
-      $this->fb_params = $this->get_valid_fb_params($_GET, 48*3600, 'fb_sig');
+      $fb_params = $this->get_valid_fb_params($_GET, 48*3600, 'fb_sig');
+      $fb_post_params = $this->get_valid_fb_params($_POST, 48*3600, 'fb_post_sig');
+      $this->fb_params = array_merge($fb_params, $fb_post_params);
     }
+
+    // Okay, something came in via POST or GET
     if ($this->fb_params) {
-      // If we got any fb_params passed in at all, then either:
-      //  - they included an fb_user / fb_session_key, which we should assume to be correct
-      //  - they didn't include an fb_user / fb_session_key, which means the user doesn't have a
-      //    valid session and if we want to get one we'll need to use require_login().  (Calling
-      //    set_user with null values for user/session_key will work properly.)
-      // Note that we should *not* use our cookies in this scenario, since they may be referring to
-      // the wrong user.
-      $user        = isset($this->fb_params['user'])        ? $this->fb_params['user'] : null;
-      $session_key = isset($this->fb_params['session_key']) ? $this->fb_params['session_key'] : null;
-      $expires     = isset($this->fb_params['expires'])     ? $this->fb_params['expires'] : null;
-      $this->set_user($user, $session_key, $expires);
-    } else if (!empty($_COOKIE) && $cookies = $this->get_valid_fb_params($_COOKIE, null, $this->api_key)) {
+      $user               = isset($this->fb_params['user']) ?
+                            $this->fb_params['user'] : null;
+      $this->profile_user = isset($this->fb_params['profile_user']) ?
+                            $this->fb_params['profile_user'] : null;
+      $this->canvas_user  = isset($this->fb_params['canvas_user']) ?
+                            $this->fb_params['canvas_user'] : null;
+
+      if (isset($this->fb_params['session_key'])) {
+        $session_key =  $this->fb_params['session_key'];
+      } else if (isset($this->fb_params['profile_session_key'])) {
+        $session_key =  $this->fb_params['profile_session_key'];
+      } else {
+        $session_key = null;
+      }
+      $expires     = isset($this->fb_params['expires']) ?
+                     $this->fb_params['expires'] : null;
+      $this->set_user($user,
+                      $session_key,
+                      $expires);
+    }
+    // if no Facebook parameters were found in the GET or POST variables,
+    // then fall back to cookies, which may have cached user information
+    // Cookies are also used to receive session data via the Javascript API
+    else if ($cookies =
+             $this->get_valid_fb_params($_COOKIE, null, $this->api_key)) {
       // use $api_key . '_' as a prefix for the cookies in case there are
       // multiple facebook clients on the same domain.
       $expires = isset($cookies['expires']) ? $cookies['expires'] : null;
-      $this->set_user($cookies['user'], $cookies['session_key'], $expires);
-    } else if (isset($_GET['auth_token']) && $resolve_auth_token &&
-               $session = $this->do_get_session($_GET['auth_token'])) {
-      $session_secret = ($this->generate_session_secret && !empty($session['secret'])) ? $session['secret'] : null;
-      $this->set_user($session['uid'], $session['session_key'], $session['expires'], $session_secret);
+      $this->set_user($cookies['user'],
+                      $cookies['session_key'],
+                      $expires);
+    }
+    // finally, if we received no parameters, but the 'auth_token' GET var
+    // is present, then we are in the middle of auth handshake,
+    // so go ahead and create the session
+    else if ($resolve_auth_token && isset($_GET['auth_token']) &&
+             $session = $this->do_get_session($_GET['auth_token'])) {
+      if ($this->generate_session_secret &&
+          !empty($session['secret'])) {
+        $session_secret = $session['secret'];
+      }
+      $this->set_user($session['uid'],
+                      $session['session_key'],
+                      $session['expires'],
+                      isset($session_secret) ? $session_secret : null);
     }
 
     return !empty($this->fb_params);
@@ -151,7 +227,7 @@ class Facebook {
       // get a frame within a frame.
       echo "<script type=\"text/javascript\">\ntop.location.href = \"$url\";\n</script>";
     } else {
-      http_header('Location', $url);
+      header('Location: ' . $url);
     }
     exit;
   }
@@ -167,29 +243,25 @@ class Facebook {
     return $this->user;
   }
 
+  public function get_canvas_user() {
+    return $this->canvas_user;
+  }
+
+  public function get_profile_user() {
+    return $this->profile_user;
+  }
+
   public static function current_url() {
     return 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
   }
 
+  // require_add and require_install have been removed.
+  // see http://developer.facebook.com/news.php?blog=1&story=116 for more details
   public function require_login() {
     if ($user = $this->get_loggedin_user()) {
       return $user;
     }
     $this->redirect($this->get_login_url(self::current_url(), $this->in_frame()));
-  }
-
-  public function require_install() {
-    // this was renamed, keeping for compatibility's sake
-    return $this->require_add();
-  }
-
-  public function require_add() {
-    if ($user = $this->get_loggedin_user()) {
-      if ($this->fb_params['added']) {
-        return $user;
-      }
-    }
-    $this->redirect($this->get_add_url(self::current_url()));
   }
 
   public function require_frame() {
@@ -199,7 +271,7 @@ class Facebook {
   }
 
   public static function get_facebook_url($subdomain='www') {
-    return 'http://' . $subdomain . '.facebook.com';
+    return 'http://' . $subdomain . '.new.facebook.com';
   }
 
   public function get_install_url($next=null) {
@@ -216,20 +288,6 @@ class Facebook {
     return self::get_facebook_url().'/login.php?v=1.0&api_key=' . $this->api_key .
       ($next ? '&next=' . urlencode($next)  : '') .
       ($canvas ? '&canvas' : '');
-  }
-
-  public static function generate_sig($params_array, $secret) {
-    $str = '';
-
-    ksort($params_array);
-    // Note: make sure that the signature parameter is not already included in
-    //       $params_array.
-    foreach ($params_array as $k=>$v) {
-      $str .= "$k=$v";
-    }
-    $str .= $secret;
-
-    return md5($str);
   }
 
   public function set_user($user, $session_key, $expires=null, $session_secret=null) {
@@ -274,26 +332,99 @@ class Facebook {
     }
   }
 
+  /*
+   * Get the signed parameters that were sent from Facebook. Validates the set
+   * of parameters against the included signature.
+   *
+   * Since Facebook sends data to your callback URL via unsecured means, the
+   * signature is the only way to make sure that the data actually came from
+   * Facebook. So if an app receives a request at the callback URL, it should
+   * always verify the signature that comes with against your own secret key.
+   * Otherwise, it's possible for someone to spoof a request by
+   * pretending to be someone else, i.e.:
+   *      www.your-callback-url.com/?fb_user=10101
+   *
+   * This is done automatically by verify_fb_params.
+   *
+   * @param  assoc  $params     a full array of external parameters.
+   *                            presumed $_GET, $_POST, or $_COOKIE
+   * @param  int    $timeout    number of seconds that the args are good for.
+   *                            Specifically good for forcing cookies to expire.
+   * @param  string $namespace  prefix string for the set of parameters we want
+   *                            to verify. i.e., fb_sig or fb_post_sig
+   *
+   * @return  assoc the subset of parameters containing the given prefix,
+   *                and also matching the signature associated with them.
+   *          OR    an empty array if the params do not validate
+   */
   public function get_valid_fb_params($params, $timeout=null, $namespace='fb_sig') {
     $prefix = $namespace . '_';
     $prefix_len = strlen($prefix);
     $fb_params = array();
+    if (empty($params)) {
+      return array();
+    }
+
     foreach ($params as $name => $val) {
+      // pull out only those parameters that match the prefix
+      // note that the signature itself ($params[$namespace]) is not in the list
       if (strpos($name, $prefix) === 0) {
         $fb_params[substr($name, $prefix_len)] = self::no_magic_quotes($val);
       }
     }
+
+    // validate that the request hasn't expired. this is most likely
+    // for params that come from $_COOKIE
     if ($timeout && (!isset($fb_params['time']) || time() - $fb_params['time'] > $timeout)) {
       return array();
     }
-    if (!isset($params[$namespace]) || (!$this->verify_signature($fb_params, $params[$namespace]))) {
+
+    // validate that the params match the signature
+    $signature = isset($params[$namespace]) ? $params[$namespace] : null;
+    if (!$signature || (!$this->verify_signature($fb_params, $signature))) {
       return array();
     }
     return $fb_params;
   }
 
+  /*
+   * Validates that a given set of parameters match their signature.
+   * Parameters all match a given input prefix, such as "fb_sig".
+   *
+   * @param $fb_params     an array of all Facebook-sent parameters,
+   *                       not including the signature itself
+   * @param $expected_sig  the expected result to check against
+   */
   public function verify_signature($fb_params, $expected_sig) {
     return self::generate_sig($fb_params, $this->secret) == $expected_sig;
+  }
+
+  /*
+   * Generate a signature using the application secret key.
+   *
+   * The only two entities that know your secret key are you and Facebook,
+   * according to the Terms of Service. Since nobody else can generate
+   * the signature, you can rely on it to verify that the information
+   * came from Facebook.
+   *
+   * @param $params_array   an array of all Facebook-sent parameters,
+   *                        NOT INCLUDING the signature itself
+   * @param $secret         your app's secret key
+   *
+   * @return a hash to be checked against the signature provided by Facebook
+   */
+  public static function generate_sig($params_array, $secret) {
+    $str = '';
+
+    ksort($params_array);
+    // Note: make sure that the signature parameter is not already included in
+    //       $params_array.
+    foreach ($params_array as $k=>$v) {
+      $str .= "$k=$v";
+    }
+    $str .= $secret;
+
+    return md5($str);
   }
 
   public function encode_validationError($summary, $message) {
