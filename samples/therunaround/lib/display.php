@@ -114,6 +114,9 @@ function render_footer() {
   $html = '</div>' .
     '<div class="footer_stuff">This is an awesome running app.</div>';
 
+  // the init js needs to be at the bottom of the document, within the </body> tag
+  // this is so that any xfbml elements are already rendered by the time the xfbml
+  // rendering takes over. otherwise, it might miss some elements in the doc.
   if (is_fbconnect_enabled()) {
     $html .= render_fbconnect_init_js();
   }

@@ -15,7 +15,7 @@
 function facebook_onload(already_logged_into_facebook) {
   // user state is either: has a session, or does not.
   // if the state has changed, detect that and reload.
-  FB_Call(function() {
+  FB.ensureInit(function() {
       FB.Facebook.get_sessionState().waitUntilReady(function(session) {
           var is_now_logged_into_facebook = session ? true : false;
 
@@ -32,40 +32,18 @@ function facebook_onload(already_logged_into_facebook) {
 }
 
 /*
- * "Session Ready" handler. This is called when the facebook
- * session becomes ready after the user clicks the "Facebook login" button.
- * In a more complex app, this could be used to do some in-page
- * replacements and avoid a full page refresh. For now, just
- * notify the server the user is logged in, and redirect to home.
- *
- * @param link_to_current_user  if the facebook session should be
- *                              linked to a currently logged in user, or used
- *                              to create a new account anyway
+ * Our <fb:login-button> specifies this function in its onlogin attribute,
+ * which is triggered after the user authenticates the app in the Connect
+ * dialog and the Facebook session has been set in the cookies.
  */
-function facebook_button_onclick() {
-
-  FB_Call(function() {
-      FB.Facebook.get_sessionState().waitUntilReady(function() {
-          var user = FB.Facebook.apiClient.get_session() ?
-            FB.Facebook.apiClient.get_session().uid :
-            null;
-
-          // probably should give some indication of failure to the user
-          if (!user) {
-            return;
-          }
-
-          // The Facebook Session has been set in the cookies,
-          // which will be picked up by the server on the next page load
-          // so refresh the page, and let all the account linking be
-          // handled on the server side
-
-          // This could be done a myriad of ways; for a page with more content,
-          // you could do an ajax call for the account linking, and then
-          // just replace content inline without a full page refresh.
-          refresh_page();
-        });
-    });
+function facebook_onlogin_ready() {
+  // In this app, we redirect the user back to index.php. The server will read
+  // the cookie and see that the user is logged in, and will deliver a new page
+  // with content appropriate for a logged-in user.
+  //
+  // However, a more complex app could use this function to do AJAX calls
+  // and/or in-place replacement of page contents to avoid a full page refresh.
+  refresh_page();
 }
 
 /*
@@ -82,7 +60,7 @@ function refresh_page() {
  * Prompts the user to grant a permission to the application.
  */
 function facebook_prompt_permission(permission) {
-  FB_Call(function() {
+  FB.ensureInit(function() {
     FB.Connect.showPermissionDialog(permission);
   });
 }
@@ -95,7 +73,7 @@ function facebook_prompt_permission(permission) {
  */
 function facebook_publish_feed_story(form_bundle_id, template_data) {
   // Load the feed form
-  FB_Call(function() {
+  FB.ensureInit(function() {
           FB.Connect.showFeedDialog(form_bundle_id, template_data);
           //FB.Connect.showFeedDialog(form_bundle_id, template_data, null, null, FB.FeedStorySize.shortStory, FB.RequireConnect.promptConnect);
 
@@ -112,7 +90,7 @@ function facebook_publish_feed_story(form_bundle_id, template_data) {
  * not connected, and shows the checkbox if that's true.
  */
 function facebook_show_feed_checkbox() {
-  FB_Call(function() {
+  FB.ensureInit(function() {
       FB.Connect.get_status().waitUntilReady(function(status) {
           if (status != FB.ConnectState.userNotLoggedIn) {
             // If the user is currently logged into Facebook, but has not

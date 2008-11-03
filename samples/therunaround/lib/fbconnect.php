@@ -1,23 +1,17 @@
 <?php
 
 /*
- * Facebook-specific functions.
- */
-
-/*
  * Renders the JS necessary for any Facebook interaction to work.
  */
 function render_fbconnect_init_js() {
   $html = sprintf(
     '<script src="%s/js/api_lib/v0.4/FeatureLoader.js.php" type="text/javascript"></script>
-     <script type="text/javascript">FB_Init("'.get_api_key().'", "xd_receiver.php");
-        FB_Call(function() {
-          FB.FBDebug.logLevel = 4;
-          FB.FBDebug.isEnabled = true;
-        });
+     <script type="text/javascript">
+       FB.init("%s", "xd_receiver.php");
      </script>
      <script src="fbconnect.js" type="text/javascript"></script>',
-    get_static_root());
+    get_static_root(),
+    get_api_key());
 
   $already_logged_in = facebook_client()->get_loggedin_user() ? "true" : "false";
   onloadRegister(sprintf("facebook_onload(%s);", $already_logged_in));
@@ -27,17 +21,23 @@ function render_fbconnect_init_js() {
 
 /*
  * Render a custom button to log in via Facebook.
- * When the button is clicked, the facebook_button_onclick JS function is fired.
- * That triggers the Facebook JS library to authenticate the user, and sets up
- * a handler for when the authentication is complete.
+ * When the button is clicked, the Facebook JS library pops up a Connect dialog
+ * to authenticate the user.
+ * If the user authenticates the application, the handler specified by the
+ * onlogin attribute will be triggered.
  *
  * @param $size   size of the button. one of ('small', 'medium', 'large')
  *
  */
 function render_fbconnect_button($size='medium') {
+
+return '<a href="#" onclick="FB.Connect.requireSession(); return false;" >
+  <img id="fb_login_image" src="http://static.ak.fbcdn.net/images/fbconnect/login-buttons/connect_light_medium_long.gif" alt="Connect"/>
+</a>';
+
   return '<fb:login-button '.
-    'size="'.$size.'" background="light" length="long" '.
-    'onclick="facebook_button_onclick();"></fb:login-button>';
+           'size="'.$size.'" background="light" length="long" '.
+           'onlogin="facebook_onlogin_ready();"></fb:login-button>';
 }
 
 /*
