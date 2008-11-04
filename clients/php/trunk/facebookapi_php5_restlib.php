@@ -59,7 +59,7 @@ class FacebookRestClient {
    *                            directly accessing the $session_key member
    *                            variable.
    */
-  public function __construct($api_key, $secret, $session_key=null, $user=null) {
+  public function __construct($api_key, $secret, $session_key=null) {
     $this->secret       = $secret;
     $this->session_key  = $session_key;
     $this->api_key      = $api_key;
@@ -67,7 +67,6 @@ class FacebookRestClient {
     $this->last_call_id = 0;
     $this->call_as_apikey = '';
       $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
-    $this->user = $user;
 
     if (!empty($GLOBALS['facebook_config']['debug'])) {
       $this->cur_id = 0;
@@ -107,6 +106,18 @@ function toggleDisplay(id, type) {
     }
   }
 
+
+  /**
+   * Set the default user id for methods that allow the caller
+   * to pass an uid parameter to identify the target user
+   * instead of a session key. This currently applies to
+   * the user preferences methods.
+   *
+   * @param $uid int the user id
+   */
+  public function set_user($uid) {
+    $this->user = $uid;
+  }
 
   /**
    * Start a batch operation.

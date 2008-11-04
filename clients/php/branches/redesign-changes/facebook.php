@@ -150,7 +150,7 @@ class Facebook {
       $this->set_user($session['uid'],
                       $session['session_key'],
                       $session['expires'],
-                      $session_secret ? $session_secret : null);
+                      isset($session_secret) ? $session_secret : null);
     }
 
     return !empty($this->fb_params);

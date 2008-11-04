@@ -907,6 +907,11 @@ function toggleDisplay(id, type) {
     return $this->call_method('facebook.fbml.setRefHandle', array('handle' => $handle, 'fbml' => $fbml));
   }
 
+  public function &fbml_registerTags($tags) {
+    $tags = json_encode($tags);
+    return $this->call_method('facebook.fbml.registerTags', array('tags' => $tags));
+  }
+
   /**
    * Get all the marketplace categories
    *

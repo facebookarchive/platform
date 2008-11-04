@@ -65,8 +65,11 @@ class Facebook {
     $this->api_key                 = $api_key;
     $this->secret                  = $secret;
     $this->generate_session_secret = $generate_session_secret;
+    $this->api_client = new FacebookRestClient($api_key, $secret, null);
     $this->validate_fb_params();
 
+    // Set the default user id for methods that allow the caller to
+    // pass an explicit uid instead of using a session key.
     $defaultUser = null;
     if ($this->user) {
       $defaultUser = $this->user;
@@ -76,7 +79,7 @@ class Facebook {
       $defaultUser = $this->canvas_user;
     }
 
-    $this->api_client = new FacebookRestClient($api_key, $secret, null, $defaultUser);
+    $this->api_client->set_user($defaultUser);
 
 
     if (isset($this->fb_params['friends'])) {
