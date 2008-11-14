@@ -2,10 +2,10 @@
 These links demonstrate the Ajax object:<br />
 
 <form id="ajax_form">
-<a href="#" onclick="do_ajax(Ajax.JSON); return false;">JSON</a><br />
-<a href="#" onclick="do_ajax(Ajax.RAW); return false;">RAW</a><br />
-<a href="#" onclick="do_ajax(Ajax.FBML); return false;">FBML</a><br />
-<label><input type="checkbox" id="requirelogin" checked="unchecked" /><span>Require Login?</span></label><br />
+<a href="#" id="json" onclick="do_ajax(Ajax.JSON); return false;">JSON</a><br />
+<a href="#" id="raw" onclick="do_ajax(Ajax.RAW); return false;">RAW</a><br />
+<a href="#" id="fbml" onclick="do_ajax(Ajax.FBML); return false;">FBML</a><br />
+<label><input type="checkbox" id="requirelogin" /><span>Require Login?</span></label><br />
 <div><span id="ajax1"></span><span id="ajax2"></span></div>
 <input type="hidden" name="array[]" value="1" />
 <input type="hidden" name="array[]" value="2" />
@@ -25,8 +25,8 @@ function do_ajax(type) {
   switch (type) {
     case Ajax.JSON:
       ajax.ondone = function(data) {
-        document.getElementById('ajax1').setTextValue(data.message + ' The current time is: ' +  data.time + '. ');
-        document.getElementById('ajax2').setInnerFBML(data.test[0].fbml_test);
+        document.getElementById('ajax1').setTextValue(data.message);
+        document.getElementById('ajax2').setTextValue(data.test[0]);
       }
       break;
 
