@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://www.facebook.com/2008/fbml">
+<head>
+  <title>Facebook Connect Demo 3</title>
+</head>
+<body>
+  <h1>Facebook Connect Demo 3</h1>
+  <p>
+    Login flow and serverside XFBML (Request form)
+  </p>
+  <p>Login Button:</p>
+  <fb:login-button>
+  </fb:login-button>
+  <h2>XFBML rendered as an iframe from facebook.com</h2>
+	<!-- Server FBML tags are necessary for Facebook elements which must be hosted on Facebook.  The request form is one of these, as demonstrated below.  See the documentation for a list of such elements.  -->	
+	<fb:serverfbml style="width: 755px;">
+		<script type="text/fbml">
+		<fb:fbml>
+		<fb:request-form 
+		  action="<url for post invite action, see wiki.developers.facebook.com for fb:request-form details>" 
+		  method="POST" 
+		  invite="true" 
+		  type="XFBML" 
+		  content="This is a test invitation from XFBML test app
+		  <fb:req-choice url='see wiki page for fb:req-choice for details' 
+		  label='Ignore the Connect test app!' />">
+		  <fb:multi-friend-selector 
+		    showborder="false" 
+		    actiontext="Invite your friends to use Connect.">
+		</fb:request-form>
+		</fb:fbml>
+		</script>
+		</fb:serverfbml>
+	<a href="index.htm">back to index.htm</a>		
+		
+		<script src="http://static.ak.connect.facebook.com/js/api_lib/v0.4/FeatureLoader.js.php"
+    type="text/javascript"></script>
+
+  <script type="text/javascript">
+    FB_RequireFeatures(["XFBML"], function()
+    {
+      FB.Facebook.init("YOUR_API_KEY_HERE", "xd_receiver.htm");
+    });
+  </script>
+
+</body>
+</html>
