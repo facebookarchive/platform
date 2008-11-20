@@ -46,7 +46,7 @@ class Facebook {
   public $user;
   public $profile_user;
   public $canvas_user;
-
+  protected $base_domain;
   /*
    * Create a Facebook client like this:
    *
@@ -126,6 +126,8 @@ class Facebook {
                             $this->fb_params['profile_user'] : null;
       $this->canvas_user  = isset($this->fb_params['canvas_user']) ?
                             $this->fb_params['canvas_user'] : null;
+      $this->base_domain  = isset($this->fb_params['base_domain']) ?
+                            $this->fb_params['base_domain'] : null;
 
       if (isset($this->fb_params['session_key'])) {
         $session_key =  $this->fb_params['session_key'];
@@ -145,6 +147,12 @@ class Facebook {
     // Cookies are also used to receive session data via the Javascript API
     else if ($cookies =
              $this->get_valid_fb_params($_COOKIE, null, $this->api_key)) {
+
+      $base_domain_cookie = 'base_domain_' . $this->api_key;
+      if (isset($_COOKIE[$base_domain_cookie])) {
+        $this->base_domain = $_COOKIE[$base_domain_cookie];
+      }
+
       // use $api_key . '_' as a prefix for the cookies in case there are
       // multiple facebook clients on the same domain.
       $expires = isset($cookies['expires']) ? $cookies['expires'] : null;
@@ -161,6 +169,11 @@ class Facebook {
           !empty($session['secret'])) {
         $session_secret = $session['secret'];
       }
+
+      if (isset($session['base_domain'])) {
+        $this->base_domain = $session['base_domain'];
+      }
+
       $this->set_user($session['uid'],
                       $session['session_key'],
                       $session['expires'],
@@ -274,7 +287,7 @@ class Facebook {
   }
 
   public static function get_facebook_url($subdomain='www') {
-    return 'http://' . $subdomain . '.new.facebook.com';
+    return 'http://' . $subdomain . '.facebook.com';
   }
 
   public function get_install_url($next=null) {
@@ -313,13 +326,20 @@ class Facebook {
     if ($session_secret != null) {
       $cookies['ss'] = $session_secret;
     }
+
     foreach ($cookies as $name => $val) {
-      setcookie($this->api_key . '_' . $name, $val, (int)$expires);
+      setcookie($this->api_key . '_' . $name, $val, (int)$expires, '', $this->base_domain);
       $_COOKIE[$this->api_key . '_' . $name] = $val;
     }
     $sig = self::generate_sig($cookies, $this->secret);
-    setcookie($this->api_key, $sig, (int)$expires);
+    setcookie($this->api_key, $sig, (int)$expires, '', $this->base_domain);
     $_COOKIE[$this->api_key] = $sig;
+
+    if ($this->base_domain != null) {
+      $base_domain_cookie = 'base_domain_' . $this->api_key;
+      setcookie($base_domain_cookie, $this->base_domain, (int)$expires, '', $this->base_domain);
+      $_COOKIE[$base_domain_cookie] = $this->base_domain;
+    }
   }
 
   /**
