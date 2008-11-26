@@ -522,6 +522,69 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   * Register custom tags for the application. Custom tags can be used
+   * to extend the set of tags available to applications in FBML
+   * markup.
+   *
+   * Before you call this function,
+   * make sure you read the full documentation at
+   *
+   * http://wiki.developers.facebook.com/index.php/Fbml.RegisterCustomTags
+   *
+   * IMPORTANT: This function overwrites the values of
+   * existing tags if the names match. Use this function with care because
+   * it may break the FBML of any application that is using the
+   * existing version of the tags.
+   *
+   * @param mixed $tags an array of tag objects (the full description is on the
+   *   wiki page)
+   *
+   * @return int  the number of tags that were registered
+   */
+  public function &fbml_registerCustomTags($tags) {
+    $tags = json_encode($tags);
+    return $this->call_method('facebook.fbml.registerCustomTags',
+                              array('tags' => $tags));
+  }
+
+  /**
+   * Get the custom tags for an application. If $app_id
+   * is not specified, the calling app's tags are returned.
+   * If $app_id is different from the id of the calling app,
+   * only the app's public tags are returned.
+   * The return value is an array of the same type as
+   * the $tags parameter of fbml_registerCustomTags().
+   *
+   * @param int $app_id the application's id (optional)
+   *
+   * @return mixed  an array containing the custom tag  objects
+   */
+  public function &fbml_getCustomTags($app_id = null) {
+    return $this->call_method('facebook.fbml.getCustomTags',
+                              array('app_id' => $app_id));
+  }
+
+
+  /**
+   * Delete custom tags the application has registered. If
+   * $tag_names is null, all the application's custom tags will be
+   * deleted.
+   *
+   * IMPORTANT: If your application has registered public tags
+   * that other applications may be using, don't delete those tags!
+   * Doing so can break the FBML ofapplications that are using them.
+   *
+   * @param array $tag_names the names of the tags to delete (optinal)
+   * @return bool true on success
+   */
+  public function &fbml_deleteCustomTags($tag_names = null) {
+    return $this->call_method('facebook.fbml.deleteCustomTags',
+                              array('tag_names' => json_encode($tag_names)));
+  }
+
+
+
+  /**
    * This method is deprecated for calls made on behalf of users. This method
    * works only for publishing stories on a Facebook Page that has installed
    * your application. To publish stories to a user's profile, use
