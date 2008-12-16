@@ -4,10 +4,12 @@ Tested up to: 2.6
 Tags: comments
 Contributors: ahupp, lshepard at facebook.com
 
-WP-FacebookConnect uses Facebook Connect to integrate Wordpress with
-Facebook.  It provides single-signon, avatars, and newsfeed comment
-publication.
+WP-FacebookConnect adds Facebook functionality to Wordpress using the
+Facebook Connect APIs.  It provides single-signon, avatars, and
+newsfeed publication of comments.
 
+It can be obtained from
+http://svn.facebook.com/svnroot/platform/plugins/wp-fbconnect/.
 
 === Installation ===
 

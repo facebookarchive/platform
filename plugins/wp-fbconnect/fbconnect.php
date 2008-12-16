@@ -45,11 +45,12 @@ function fbc_init_auth() {
   $assoc_fbuid = fbc_get_fbuid($user->ID);
 
   if ($assoc_fbuid) {
-    if ($fbuid) {
+    if ($fbuid === $assoc_fbuid) {
        // user is already logged in to both
       return;
     } else {
       //wp session, no fbsession = logout of wp and reload page
+      // or, user is logged in under a different fb account
       wp_logout();
       header('Location: ' . $_SERVER['REQUEST_URI']);
       exit();
