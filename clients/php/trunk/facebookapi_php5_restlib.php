@@ -1,4 +1,5 @@
 <?php
+// Copyright 2004-2008 Facebook. All Rights Reserved.
 //
 // +---------------------------------------------------------------------------+
 // | Facebook Platform PHP5 client                                             |
@@ -32,6 +33,7 @@
 //
 
 include_once 'jsonwrapper/jsonwrapper.php';
+
 class FacebookRestClient {
   public $secret;
   public $session_key;
@@ -51,6 +53,7 @@ class FacebookRestClient {
   public $batch_mode;
   private $batch_queue;
   private $call_as_apikey;
+  private $use_curl_if_available;
 
   const BATCH_MODE_DEFAULT = 0;
   const BATCH_MODE_SERVER_PARALLEL = 0;
@@ -70,7 +73,8 @@ class FacebookRestClient {
     $this->batch_mode = FacebookRestClient::BATCH_MODE_DEFAULT;
     $this->last_call_id = 0;
     $this->call_as_apikey = '';
-      $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
+    $this->use_curl_if_available = true;
+    $this->server_addr  = Facebook::get_facebook_url('api') . '/restserver.php';
 
     if (!empty($GLOBALS['facebook_config']['debug'])) {
       $this->cur_id = 0;
@@ -123,13 +127,24 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   * Normally, if the cURL library/PHP extension is available, it is used for
+   * HTTP transactions.  This allows that behavior to be overridden, falling
+   * back to a vanilla-PHP implementation even if cURL is installed.
+   *
+   * @param $use_curl_if_available bool whether or not to use cURL if available
+   */
+  public function set_use_curl_if_available($use_curl_if_available) {
+    $this->use_curl_if_available = $use_curl_if_available;
+  }
+
+  /**
    * Start a batch operation.
    */
   public function begin_batch() {
     if($this->batch_queue !== null) {
       $code = FacebookAPIErrorCodes::API_EC_BATCH_ALREADY_STARTED;
-      throw new FacebookRestClientException($code,
-        FacebookAPIErrorCodes::$api_error_descriptions[$code]);
+      $description = FacebookAPIErrorCodes::$api_error_descriptions[$code];
+      throw new FacebookRestClientException($description, $code);
     }
 
     $this->batch_queue = array();
@@ -141,8 +156,8 @@ function toggleDisplay(id, type) {
   public function end_batch() {
     if($this->batch_queue === null) {
       $code = FacebookAPIErrorCodes::API_EC_BATCH_NOT_STARTED;
-      throw new FacebookRestClientException($code,
-      FacebookAPIErrorCodes::$api_error_descriptions[$code]);
+      $description = FacebookAPIErrorCodes::$api_error_descriptions[$code];
+      throw new FacebookRestClientException($description, $code);
     }
 
     $this->execute_server_side_batch();
@@ -154,8 +169,10 @@ function toggleDisplay(id, type) {
     $item_count = count($this->batch_queue);
     $method_feed = array();
     foreach($this->batch_queue as $batch_item) {
-      $method_feed[] = $this->create_post_string($batch_item['m'],
-                                                 $batch_item['p']);
+      $method = $batch_item['m'];
+      $params = $batch_item['p'];
+      $this->finalize_params($method, $params);
+      $method_feed[] = $this->create_post_string($method, $params);
     }
 
     $method_feed_json = json_encode($method_feed);
@@ -778,6 +795,8 @@ function toggleDisplay(id, type) {
    *   array(0 => array('uid1' => id_1, 'uid2' => id_A, 'are_friends' => 1),
    *         1 => array('uid1' => id_2, 'uid2' => id_B, 'are_friends' => 0)
    *         ...)
+   * @error
+   *    API_EC_PARAM_USER_ID_LIST
    */
   public function &friends_areFriends($uids1, $uids2) {
     return $this->call_method('facebook.friends.areFriends',
@@ -788,16 +807,20 @@ function toggleDisplay(id, type) {
    * Returns the friends of the current session user.
    *
    * @param int $flid  (Optional) Only return friends on this friend list.
+   * @param int $uid   (Optional) Return friends for this user.
    *
    * @return array  An array of friends
    */
-  public function &friends_get($flid=null) {
+  public function &friends_get($flid=null, $uid = null) {
     if (isset($this->friends_list)) {
       return $this->friends_list;
     }
     $params = array();
-    if (isset($this->canvas_user)) {
-      $params['uid'] = $this->canvas_user;
+    if (!$uid && isset($this->canvas_user)) {
+      $uid = $this->canvas_user;
+    }
+    if ($uid) {
+      $params['uid'] = $uid;
     }
     if ($flid) {
       $params['flid'] = $flid;
@@ -961,6 +984,8 @@ function toggleDisplay(id, type) {
    * Sends a notification to the specified users.
    *
    * @return A comma separated list of successful recipients
+   * @error
+   *    API_EC_PARAM_USER_ID_LIST
    */
   public function &notifications_send($to_ids, $notification, $type) {
     return $this->call_method('facebook.notifications.send',
@@ -978,6 +1003,8 @@ function toggleDisplay(id, type) {
    * @param string $fbml       fbml markup for an html version of the email
    *
    * @return string  A comma separated list of successful recipients
+   * @error
+   *    API_EC_PARAM_USER_ID_LIST
    */
   public function &notifications_sendEmail($recipients,
                                            $subject,
@@ -1169,6 +1196,26 @@ function toggleDisplay(id, type) {
   public function &photos_getTags($pids) {
     return $this->call_method('facebook.photos.getTags',
       array('pids' => $pids));
+  }
+
+  /**
+   * Uploads a photo.
+   *
+   * @param string $file     The location of the photo on the local filesystem.
+   * @param int $aid         (Optional) The album into which to upload the
+   *                         photo.
+   * @param string $caption  (Optional) A caption for the photo.
+   * @param int uid          (Optional) The user ID of the user whose photo you
+   *                         are uploading
+   *
+   * @return array  An array of user objects
+   */
+  public function photos_upload($file, $aid=null, $caption=null, $uid=null) {
+    return $this->call_upload_method('facebook.photos.upload',
+                                     array('aid' => $aid,
+                                           'caption' => $caption,
+                                           'uid' => $uid),
+                                     $file);
   }
 
   /**
@@ -2383,21 +2430,28 @@ function toggleDisplay(id, type) {
   /* UTILITY FUNCTIONS */
 
   /**
-   * Calls the specified method with the specified parameters.
+   * Calls the specified normal POST method with the specified parameters.
    *
    * @param string $method  Name of the Facebook method to invoke
    * @param array $params   A map of param names => param values
    *
-   * @return mixed  Result of method call
+   * @return mixed  Result of method call; this returns a reference to support
+   *                'delayed returns' when in a batch context.
+   *     See: http://wiki.developers.facebook.com/index.php/Using_batching_API
    */
-  public function & call_method($method, $params) {
+  public function &call_method($method, $params) {
     //Check if we are in batch mode
     if($this->batch_queue === null) {
       if ($this->call_as_apikey) {
         $params['call_as_apikey'] = $this->call_as_apikey;
       }
-      $xml = $this->post_request($method, $params);
-      $result = $this->convert_xml_to_result($xml, $method, $params);
+      $data = $this->post_request($method, $params);
+      if (empty($params['format']) || strtolower($params['format']) != 'json') {
+        $result = $this->convert_xml_to_result($data, $method, $params);
+      }
+      else {
+        $result = json_decode($data, true);
+      }
 
       if (is_array($result) && isset($result['error_code'])) {
         throw new FacebookRestClientException($result['error_msg'],
@@ -2413,10 +2467,45 @@ function toggleDisplay(id, type) {
     return $result;
   }
 
+  /**
+   * Calls the specified file-upload POST method with the specified parameters
+   *
+   * @param string $method Name of the Facebook method to invoke
+   * @param array  $params A map of param names => param values
+   * @param string $file   A path to the file to upload (required)
+   *
+   * @return array A dictionary representing the response.
+   */
+  public function call_upload_method($method, $params, $file) {
+    if ($this->batch_queue === null) {
+      if (!file_exists($file)) {
+        $code =
+          FacebookAPIErrorCodes::API_EC_PARAM;
+        $description = FacebookAPIErrorCodes::$api_error_descriptions[$code];
+        throw new FacebookRestClientException($description, $code);
+      }
+
+      $xml = $this->post_upload_request($method, $params, $file);
+      $result = $this->convert_xml_to_result($xml, $method, $params);
+
+      if (is_array($result) && isset($result['error_code'])) {
+        throw new FacebookRestClientException($result['error_msg'],
+                                              $result['error_code']);
+      }
+    }
+    else {
+      $code =
+        FacebookAPIErrorCodes::API_EC_BATCH_METHOD_NOT_ALLOWED_IN_BATCH_MODE;
+      $description = FacebookAPIErrorCodes::$api_error_descriptions[$code];
+      throw new FacebookRestClientException($description, $code);
+    }
+
+    return $result;
+  }
+
   private function convert_xml_to_result($xml, $method, $params) {
     $sxml = simplexml_load_string($xml);
     $result = self::convert_simplexml_to_array($sxml);
-
 
     if (!empty($GLOBALS['facebook_config']['debug'])) {
       // output the raw xml and its corresponding php object, for debugging:
@@ -2436,7 +2525,25 @@ function toggleDisplay(id, type) {
     return $result;
   }
 
-  private function create_post_string($method, $params) {
+  private function finalize_params($method, &$params) {
+    $this->add_standard_params($method, $params);
+    // we need to do this before signing the params
+    $this->convert_array_values_to_csv($params);
+    $params['sig'] = Facebook::generate_sig($params, $this->secret);
+  }
+
+  private function convert_array_values_to_csv(&$params) {
+    foreach ($params as $key => &$val) {
+      if (is_array($val)) {
+        $val = implode(',', $val);
+      }
+    }
+  }
+
+  private function add_standard_params($method, &$params) {
+    if ($this->call_as_apikey) {
+      $params['call_as_apikey'] = $this->call_as_apikey;
+    }
     $params['method'] = $method;
     $params['session_key'] = $this->session_key;
     $params['api_key'] = $this->api_key;
@@ -2448,22 +2555,50 @@ function toggleDisplay(id, type) {
     if (!isset($params['v'])) {
       $params['v'] = '1.0';
     }
+  }
+
+  private function create_post_string($method, $params) {
     $post_params = array();
     foreach ($params as $key => &$val) {
-      if (is_array($val)) $val = implode(',', $val);
       $post_params[] = $key.'='.urlencode($val);
     }
-    $secret = $this->secret;
-    $post_params[] = 'sig='.Facebook::generate_sig($params, $secret);
     return implode('&', $post_params);
   }
 
+  private function run_multipart_http_transaction($method, $params, $file) {
+    // the format of this message is specified in RFC1867/RFC1341.
+    // we add twenty pseudo-random digits to the end of the boundary string.
+    $boundary = '--------------------------FbMuLtIpArT' .
+                sprintf("%010d", mt_rand()) .
+                sprintf("%010d", mt_rand());
+    $content_type = 'multipart/form-data; boundary=' . $boundary;
+    // within the message, we prepend two extra hyphens.
+    $delimiter = '--' . $boundary;
+    $close_delimiter = $delimiter . '--';
+    $content_lines = array();
+    foreach ($params as $key => &$val) {
+      $content_lines[] = $delimiter;
+      $content_lines[] = 'Content-Disposition: form-data; name="' . $key . '"';
+      $content_lines[] = '';
+      $content_lines[] = $val;
+    }
+    // now add the file data
+    $content_lines[] = $delimiter;
+    $content_lines[] =
+      'Content-Disposition: form-data; filename="' . $file . '"';
+    $content_lines[] = 'Content-Type: application/octet-stream';
+    $content_lines[] = '';
+    $content_lines[] = file_get_contents($file);
+    $content_lines[] = $close_delimiter;
+    $content_lines[] = '';
+    $content = implode("\r\n", $content_lines);
+    return $this->run_http_post_transaction($content_type, $content);
+  }
+
   public function post_request($method, $params) {
-
+    $this->finalize_params($method, $params);
     $post_string = $this->create_post_string($method, $params);
-
-    if (function_exists('curl_init')) {
-      // Use CURL if installed...
+    if ($this->use_curl_if_available && function_exists('curl_init')) {
       $useragent = 'Facebook API PHP5 Client 1.1 (curl) ' . phpversion();
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, $this->server_addr);
@@ -2473,25 +2608,55 @@ function toggleDisplay(id, type) {
       $result = curl_exec($ch);
       curl_close($ch);
     } else {
-      // Non-CURL based version...
       $content_type = 'application/x-www-form-urlencoded';
-      $user_agent = 'Facebook API PHP5 Client 1.1 (non-curl) '.phpversion();
-      $context =
-        array('http' =>
-              array('method' => 'POST',
-                    'header' => 'Content-type: '.$content_type."\r\n".
-                                'User-Agent: '.$user_agent."\r\n".
-                                'Content-length: ' . strlen($post_string),
-                    'content' => $post_string));
-      $contextid=stream_context_create($context);
-      $sock=fopen($this->server_addr, 'r', false, $contextid);
-      if ($sock) {
-        $result='';
-        while (!feof($sock))
-          $result.=fgets($sock, 4096);
+      $content = $post_string;
+      $this->run_http_post_transaction($content_type, $content);
+    }
+    return $result;
+  }
 
-        fclose($sock);
+  private function post_upload_request($method, $params, $file) {
+    $this->finalize_params($method, $params);
+    if ($this->use_curl_if_available && function_exists('curl_init')) {
+      // prepending '@' causes cURL to upload the file; the key is ignored.
+      $params['_file'] = '@' . $file;
+      $useragent = 'Facebook API PHP5 Client 1.1 (curl) ' . phpversion();
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $this->server_addr);
+      // this has to come before the POSTFIELDS set!
+      curl_setopt($ch, CURLOPT_POST, 1 );
+      // passing an array gets curl to use the multipart/form-data content type
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+      $result = curl_exec($ch);
+      curl_close($ch);
+    } else {
+      $result = $this->run_multipart_http_transaction($method, $params, $file);
+    }
+    return $result;
+  }
+
+  private function run_http_post_transaction($content_type, $content) {
+
+    $user_agent = 'Facebook API PHP5 Client 1.1 (non-curl) ' . phpversion();
+    $content_length = strlen($content);
+    $context =
+      array('http' =>
+              array('method' => 'POST',
+                    'user_agent' => $user_agent,
+                    'header' => 'Content-Type: ' . $content_type . "\r\n" .
+                                'Content-Length: ' . $content_length,
+                    'content' => $content));
+    $context_id = stream_context_create($context);
+    $sock = fopen($this->server_addr, 'r', false, $context_id);
+
+    $result = '';
+    if ($sock) {
+      while (!feof($sock)) {
+        $result .= fgets($sock, 4096);
       }
+      fclose($sock);
     }
     return $result;
   }
@@ -2553,6 +2718,8 @@ class FacebookAPIErrorCodes {
   const API_EC_PARAM_USER_ID = 110;
   const API_EC_PARAM_USER_FIELD = 111;
   const API_EC_PARAM_SOCIAL_FIELD = 112;
+  const API_EC_PARAM_EMAIL = 113;
+  const API_EC_PARAM_USER_ID_LIST = 114;
   const API_EC_PARAM_ALBUM_ID = 120;
   const API_EC_PARAM_BAD_EID = 150;
   const API_EC_PARAM_UNKNOWN_CITY = 151;
@@ -2567,10 +2734,17 @@ class FacebookAPIErrorCodes {
   const API_EC_PERMISSION_EVENT = 290;
   const API_EC_PERMISSION_RSVP_EVENT = 299;
 
+  /*
+   * DATA EDIT ERRORS
+   */
+  const API_EC_EDIT_ALBUM_SIZE = 321;
+
   const FQL_EC_PARSER = 601;
   const FQL_EC_UNKNOWN_FIELD = 602;
   const FQL_EC_UNKNOWN_TABLE = 603;
   const FQL_EC_NOT_INDEXABLE = 604;
+  const FQL_EC_UNKNOWN_FUNCTION = 605;
+  const FQL_EC_INVALID_PARAM = 606;
 
   /**
    * DATA STORE API ERRORS
@@ -2590,43 +2764,44 @@ class FacebookAPIErrorCodes {
   const API_EC_BATCH_METHOD_NOT_ALLOWED_IN_BATCH_MODE = 902;
 
   public static $api_error_descriptions = array(
-      API_EC_SUCCESS           => 'Success',
-      API_EC_UNKNOWN           => 'An unknown error occurred',
-      API_EC_SERVICE           => 'Service temporarily unavailable',
-      API_EC_METHOD            => 'Unknown method',
-      API_EC_TOO_MANY_CALLS    => 'Application request limit reached',
-      API_EC_BAD_IP            => 'Unauthorized source IP address',
-      API_EC_PARAM             => 'Invalid parameter',
-      API_EC_PARAM_API_KEY     => 'Invalid API key',
-      API_EC_PARAM_SESSION_KEY => 'Session key invalid or no longer valid',
-      API_EC_PARAM_CALL_ID     => 'Call_id must be greater than previous',
-      API_EC_PARAM_SIGNATURE   => 'Incorrect signature',
-      API_EC_PARAM_USER_ID     => 'Invalid user id',
-      API_EC_PARAM_USER_FIELD  => 'Invalid user info field',
-      API_EC_PARAM_SOCIAL_FIELD => 'Invalid user field',
-      API_EC_PARAM_ALBUM_ID    => 'Invalid album id',
-      API_EC_PARAM_BAD_EID     => 'Invalid eid',
-      API_EC_PARAM_UNKNOWN_CITY => 'Unknown city',
-      API_EC_PERMISSION        => 'Permissions error',
-      API_EC_PERMISSION_USER   => 'User not visible',
-      API_EC_PERMISSION_ALBUM  => 'Album not visible',
-      API_EC_PERMISSION_PHOTO  => 'Photo not visible',
-      API_EC_PERMISSION_EVENT  => 'Creating and modifying events required the extended permission create_event',
-      API_EC_PERMISSION_RSVP_EVENT => 'RSVPing to events required the extended permission rsvp_event',
-      FQL_EC_PARSER            => 'FQL: Parser Error',
-      FQL_EC_UNKNOWN_FIELD     => 'FQL: Unknown Field',
-      FQL_EC_UNKNOWN_TABLE     => 'FQL: Unknown Table',
-      FQL_EC_NOT_INDEXABLE     => 'FQL: Statement not indexable',
-      FQL_EC_UNKNOWN_FUNCTION  => 'FQL: Attempted to call unknown function',
-      FQL_EC_INVALID_PARAM     => 'FQL: Invalid parameter passed in',
-      API_EC_DATA_UNKNOWN_ERROR => 'Unknown data store API error',
-      API_EC_DATA_INVALID_OPERATION => 'Invalid operation',
-      API_EC_DATA_QUOTA_EXCEEDED => 'Data store allowable quota was exceeded',
-      API_EC_DATA_OBJECT_NOT_FOUND => 'Specified object cannot be found',
-      API_EC_DATA_OBJECT_ALREADY_EXISTS => 'Specified object already exists',
-      API_EC_DATA_DATABASE_ERROR => 'A database error occurred. Please try again',
-      API_EC_BATCH_ALREADY_STARTED => 'begin_batch already called, please make sure to call end_batch first',
-      API_EC_BATCH_NOT_STARTED => 'end_batch called before start_batch',
-      API_EC_BATCH_METHOD_NOT_ALLOWED_IN_BATCH_MODE => 'This method is not allowed in batch mode',
+      self::API_EC_SUCCESS           => 'Success',
+      self::API_EC_UNKNOWN           => 'An unknown error occurred',
+      self::API_EC_SERVICE           => 'Service temporarily unavailable',
+      self::API_EC_METHOD            => 'Unknown method',
+      self::API_EC_TOO_MANY_CALLS    => 'Application request limit reached',
+      self::API_EC_BAD_IP            => 'Unauthorized source IP address',
+      self::API_EC_PARAM             => 'Invalid parameter',
+      self::API_EC_PARAM_API_KEY     => 'Invalid API key',
+      self::API_EC_PARAM_SESSION_KEY => 'Session key invalid or no longer valid',
+      self::API_EC_PARAM_CALL_ID     => 'Call_id must be greater than previous',
+      self::API_EC_PARAM_SIGNATURE   => 'Incorrect signature',
+      self::API_EC_PARAM_USER_ID     => 'Invalid user id',
+      self::API_EC_PARAM_USER_FIELD  => 'Invalid user info field',
+      self::API_EC_PARAM_SOCIAL_FIELD => 'Invalid user field',
+      self::API_EC_PARAM_ALBUM_ID    => 'Invalid album id',
+      self::API_EC_PARAM_BAD_EID     => 'Invalid eid',
+      self::API_EC_PARAM_UNKNOWN_CITY => 'Unknown city',
+      self::API_EC_PERMISSION        => 'Permissions error',
+      self::API_EC_PERMISSION_USER   => 'User not visible',
+      self::API_EC_PERMISSION_ALBUM  => 'Album not visible',
+      self::API_EC_PERMISSION_PHOTO  => 'Photo not visible',
+      self::API_EC_PERMISSION_EVENT  => 'Creating and modifying events required the extended permission create_event',
+      self::API_EC_PERMISSION_RSVP_EVENT => 'RSVPing to events required the extended permission rsvp_event',
+      self::API_EC_EDIT_ALBUM_SIZE   => 'Album is full',
+      self::FQL_EC_PARSER            => 'FQL: Parser Error',
+      self::FQL_EC_UNKNOWN_FIELD     => 'FQL: Unknown Field',
+      self::FQL_EC_UNKNOWN_TABLE     => 'FQL: Unknown Table',
+      self::FQL_EC_NOT_INDEXABLE     => 'FQL: Statement not indexable',
+      self::FQL_EC_UNKNOWN_FUNCTION  => 'FQL: Attempted to call unknown function',
+      self::FQL_EC_INVALID_PARAM     => 'FQL: Invalid parameter passed in',
+      self::API_EC_DATA_UNKNOWN_ERROR => 'Unknown data store API error',
+      self::API_EC_DATA_INVALID_OPERATION => 'Invalid operation',
+      self::API_EC_DATA_QUOTA_EXCEEDED => 'Data store allowable quota was exceeded',
+      self::API_EC_DATA_OBJECT_NOT_FOUND => 'Specified object cannot be found',
+      self::API_EC_DATA_OBJECT_ALREADY_EXISTS => 'Specified object already exists',
+      self::API_EC_DATA_DATABASE_ERROR => 'A database error occurred. Please try again',
+      self::API_EC_BATCH_ALREADY_STARTED => 'begin_batch already called, please make sure to call end_batch first',
+      self::API_EC_BATCH_NOT_STARTED => 'end_batch called before start_batch',
+      self::API_EC_BATCH_METHOD_NOT_ALLOWED_IN_BATCH_MODE => 'This method is not allowed in batch mode'
   );
 }
