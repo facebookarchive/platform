@@ -1,5 +1,5 @@
 <?php
-// Copyright 2004-2008 Facebook. All Rights Reserved.
+// Copyright 2004-2009 Facebook. All Rights Reserved.
 //
 // +---------------------------------------------------------------------------+
 // | Facebook Platform PHP5 client                                             |
@@ -36,7 +36,6 @@ include_once 'facebookapi_php5_restlib.php';
 define('FACEBOOK_API_VALIDATION_ERROR', 1);
 class Facebook {
   public $api_client;
-
   public $api_key;
   public $secret;
   public $generate_session_secret;
