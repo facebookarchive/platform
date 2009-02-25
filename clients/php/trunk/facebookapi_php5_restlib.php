@@ -315,6 +315,19 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   *  Revokes the given extended permission that the user granted at some
+   *  prior time (for instance, offline_access or email).  If no user is
+   *  provided, it will be revoked for the user of the current session.
+   *
+   *  @param  string  $perm  The permission to revoke
+   *  @param  int     $uid   The user for whom to revoke the permission.
+   */
+  public function auth_revokeExtendedPermission($perm, $uid=null) {
+    return $this->call_method('facebook.auth.revokeExtendedPermission',
+        array('perm' => $perm, 'uid' => $uid));
+  }
+
+  /**
    * Revokes the user's agreement to the Facebook Terms of Service for your
    * application.  If you call this method for one of your users, you will no
    * longer be able to make API requests on their behalf until they again
@@ -392,9 +405,9 @@ function toggleDisplay(id, type) {
    *
    * @param int $uid            (Optional) User associated with events. A null
    *                            parameter will default to the session user.
-   * @param string $eids        (Optional) Filter by these comma-separated event
+   * @param array/string $eids  (Optional) Filter by these event
    *                            ids. A null parameter will get all events for
-   *                            the user.
+   *                            the user. (A csv list will work but is deprecated)
    * @param int $start_time     (Optional) Filter with this unix time as lower
    *                            bound.  A null or zero parameter indicates no
    *                            lower bound.
@@ -801,10 +814,10 @@ function toggleDisplay(id, type) {
    * Returns whether or not pairs of users are friends.
    * Note that the Facebook friend relationship is symmetric.
    *
-   * @param string $uids1  comma-separated list of ids (id_1, id_2,...)
-   *                       of some length X
-   * @param string $uids2  comma-separated list of ids (id_A, id_B,...)
-   *                       of SAME length X
+   * @param array/string $uids1  list of ids (id_1, id_2,...)
+   *                       of some length X (csv is deprecated)
+   * @param array/string $uids2  list of ids (id_A, id_B,...)
+   *                       of SAME length X (csv is deprecated)
    *
    * @return array  An array with uid1, uid2, and bool if friends, e.g.:
    *   array(0 => array('uid1' => id_1, 'uid2' => id_A, 'are_friends' => 1),
@@ -815,7 +828,8 @@ function toggleDisplay(id, type) {
    */
   public function &friends_areFriends($uids1, $uids2) {
     return $this->call_method('facebook.friends.areFriends',
-        array('uids1' => $uids1, 'uids2' => $uids2));
+                 array('uids1' => $uids1,
+                       'uids2' => $uids2));
   }
 
   /**
@@ -868,8 +882,9 @@ function toggleDisplay(id, type) {
    *
    * @param int $uid     (Optional) User associated with groups.  A null
    *                     parameter will default to the session user.
-   * @param string $gids (Optional) Comma-separated group ids to query. A null
+   * @param array/string $gids (Optional) Array of group ids to query. A null
    *                     parameter will get all groups for the user.
+   *                     (csv is deprecated)
    *
    * @return array  An array of group objects
    */
@@ -941,7 +956,7 @@ function toggleDisplay(id, type) {
     return $this->call_method('links.get',
         array('uid' => $uid,
               'limit' => $limit,
-              'link_ids' => json_encode($link_ids)));
+              'link_ids' => $link_ids));
   }
 
   /**
@@ -1082,9 +1097,10 @@ function toggleDisplay(id, type) {
    *               notes.
    */
   public function &notes_get($uid, $note_ids = null) {
+
     return $this->call_method('notes.get',
         array('uid' => $uid,
-              'note_ids' => json_encode($note_ids)));
+              'note_ids' => $note_ids));
   }
 
 
@@ -1117,7 +1133,7 @@ function toggleDisplay(id, type) {
   /**
    * Sends an email to the specified user of the application.
    *
-   * @param string $recipients comma-separated ids of the recipients
+   * @param array/string $recipients array of ids of the recipients (csv is deprecated)
    * @param string $subject    subject of the email
    * @param string $text       (plain text) body of the email
    * @param string $fbml       fbml markup for an html version of the email
@@ -1140,9 +1156,9 @@ function toggleDisplay(id, type) {
   /**
    * Returns the requested info fields for the requested set of pages.
    *
-   * @param string  $page_ids  a comma-separated list of page ids
-   * @param string  $fields    a comma-separated list of strings describing the
-   *                           info fields desired
+   * @param array/string $page_ids  an array of page ids (csv is deprecated)
+   * @param array/string  $fields    an array of strings describing the
+   *                           info fields desired (csv is deprecated)
    * @param int    $uid       (Optional) limit results to pages of which this
    *                          user is a fan.
    * @param string type       limits results to a particular type of page.
@@ -1275,7 +1291,8 @@ function toggleDisplay(id, type) {
    * @param int $subj_id  (Optional) Filter by uid of user tagged in the photos.
    * @param int $aid      (Optional) Filter by an album, as returned by
    *                      photos_getAlbums.
-   * @param string $pids   (Optional) Restrict to a comma-separated list of pids
+   * @param array/string $pids   (Optional) Restrict to an array of pids
+   *                             (csv is deprecated)
    *
    * Note that at least one of these parameters needs to be specified, or an
    * error is returned.
@@ -1292,8 +1309,8 @@ function toggleDisplay(id, type) {
    *
    * @param int $uid      (Optional) The uid of the user whose albums you want.
    *                       A null will return the albums of the session user.
-   * @param string $aids  (Optional) A comma-separated list of aids to restricti
-   *                       the query.
+   * @param string $aids  (Optional) An array of aids to restrict
+   *                       the query. (csv is deprecated)
    *
    * Note that at least one of the (uid, aids) parameters must be specified.
    *
@@ -1371,14 +1388,15 @@ function toggleDisplay(id, type) {
   /**
    * Returns the requested info fields for the requested set of users.
    *
-   * @param string $uids    A comma-separated list of user ids
-   * @param string $fields  A comma-separated list of info field names desired
+   * @param array/string $uids    An array of user ids (csv is deprecated)
+   * @param array/string $fields  An array of info field names desired (csv is deprecated)
    *
    * @return array  An array of user objects
    */
   public function &users_getInfo($uids, $fields) {
     return $this->call_method('facebook.users.getInfo',
-        array('uids' => $uids, 'fields' => $fields));
+                  array('uids' => $uids,
+                        'fields' => $fields));
   }
 
   /**
@@ -1391,14 +1409,15 @@ function toggleDisplay(id, type) {
    * users, use users.getInfo instead, so that proper privacy rules will be
    * applied.
    *
-   * @param string $uids    A comma-separated list of user ids
-   * @param string $fields  A comma-separated list of info field names desired
+   * @param array/string $uids    An array of user ids (csv is deprecated)
+   * @param array/string $fields  An array of info field names desired (csv is deprecated)
    *
    * @return array  An array of user objects
    */
   public function &users_getStandardInfo($uids, $fields) {
     return $this->call_method('facebook.users.getStandardInfo',
-        array('uids' => $uids, 'fields' => $fields));
+                              array('uids' => $uids,
+                                    'fields' => $fields));
   }
 
   /**
@@ -2523,12 +2542,14 @@ function toggleDisplay(id, type) {
    *
    * @param string $integration_point_name  Name of an integration point
    *                                        (see developer wiki for list).
+   * @param int    $uid                     Specific user to check the limit.
    *
    * @return int  Integration point allocation value
    */
-  public function &admin_getAllocation($integration_point_name) {
+  public function &admin_getAllocation($integration_point_name, $uid=null) {
     return $this->call_method('facebook.admin.getAllocation',
-        array('integration_point_name' => $integration_point_name));
+        array('integration_point_name' => $integration_point_name,
+              'uid' => $uid));
   }
 
   /**
@@ -2689,14 +2710,14 @@ function toggleDisplay(id, type) {
   private function finalize_params($method, &$params) {
     $this->add_standard_params($method, $params);
     // we need to do this before signing the params
-    $this->convert_array_values_to_csv($params);
+    $this->convert_array_values_to_json($params);
     $params['sig'] = Facebook::generate_sig($params, $this->secret);
   }
 
-  private function convert_array_values_to_csv(&$params) {
+  private function convert_array_values_to_json(&$params) {
     foreach ($params as $key => &$val) {
       if (is_array($val)) {
-        $val = implode(',', $val);
+        $val = json_encode($val);
       }
     }
   }
@@ -2897,6 +2918,7 @@ class FacebookAPIErrorCodes {
   const API_EC_PARAM_SOCIAL_FIELD = 112;
   const API_EC_PARAM_EMAIL = 113;
   const API_EC_PARAM_USER_ID_LIST = 114;
+  const API_EC_PARAM_FIELD_LIST = 115;
   const API_EC_PARAM_ALBUM_ID = 120;
   const API_EC_PARAM_PHOTO_ID = 121;
   const API_EC_PARAM_FEED_PRIORITY = 130;
@@ -3100,6 +3122,8 @@ class FacebookAPIErrorCodes {
       self::API_EC_PARAM_USER_ID     => 'Invalid user id',
       self::API_EC_PARAM_USER_FIELD  => 'Invalid user info field',
       self::API_EC_PARAM_SOCIAL_FIELD => 'Invalid user field',
+      self::API_EC_PARAM_USER_ID_LIST => 'Invalid user id list',
+      self::API_EC_PARAM_FIELD_LIST => 'Invalid field list',
       self::API_EC_PARAM_ALBUM_ID    => 'Invalid album id',
       self::API_EC_PARAM_BAD_EID     => 'Invalid eid',
       self::API_EC_PARAM_UNKNOWN_CITY => 'Unknown city',
