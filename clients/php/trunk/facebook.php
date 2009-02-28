@@ -421,6 +421,37 @@ class Facebook {
     return self::generate_sig($fb_params, $this->secret) == $expected_sig;
   }
 
+  /**
+   * Validate the given signed public session data structure with
+   * public key of the app that
+   * the session proof belongs to.
+   *
+   * @param $signed_data the session info that is passed by another app
+   * @param string $public_key Optional public key of the app. If this
+   *               is not passed, function will make an API call to get it.
+   * return true if the session proof passed verification.
+   */
+  public function verify_signed_public_session_data($signed_data,
+                                                    $public_key = null) {
+
+    // If public key is not already provided, we need to get it through API
+    if (!$public_key) {
+      $public_key = $this->api_client->auth_getAppPublicKey(
+        $signed_data['api_key']);
+    }
+
+    // Create data to verify
+    $data_to_serialize = $signed_data;
+    unset($data_to_serialize['sig']);
+    $serialized_data = implode('_', $data_to_serialize);
+
+    // Decode signature
+    $signature = base64_decode($signed_data['sig']);
+    $result = openssl_verify($serialized_data, $signature, $public_key,
+                             OPENSSL_ALGO_SHA1);
+    return $result == 1;
+  }
+
   /*
    * Generate a signature using the application secret key.
    *

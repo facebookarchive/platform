@@ -345,6 +345,30 @@ function toggleDisplay(id, type) {
   }
 
   /**
+   * Get public key that is needed to verify digital signature
+   * an app may pass to other apps. The public key is only used by
+   * other apps for verification purposes.
+   * @param  string  API key of an app
+   * @return string  The public key for the app.
+   */
+  public function auth_getAppPublicKey($target_app_key) {
+    return $this->call_method('facebook.auth.getAppPublicKey',
+          array('target_app_key' => $target_app_key));
+  }
+
+  /**
+   * Get a structure that can be passed to another app
+   * as proof of session. The other app can verify it using public
+   * key of this app.
+   *
+   * @return signed public session data structure.
+   */
+  public function auth_getSignedPublicSessionData() {
+    return $this->call_method('facebook.auth.getSignedPublicSessionData',
+                              array());
+  }
+
+  /**
    * Returns the number of unconnected friends that exist in this application.
    * This number is determined based on the accounts registered through
    * connect.registerUsers() (see below).
@@ -2792,6 +2816,8 @@ function toggleDisplay(id, type) {
       curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+      curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+      curl_setopt($ch, CURLOPT_TIMEOUT, 30);
       $result = curl_exec($ch);
       curl_close($ch);
     } else {
