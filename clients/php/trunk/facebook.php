@@ -212,26 +212,53 @@ class Facebook {
     }
   }
 
-  // Invalidate the session currently being used, and clear any state associated with it
+  // Invalidate the session currently being used, and clear any state associated
+  // with it. Note that the user will still remain logged into Facebook.
   public function expire_session() {
     if ($this->api_client->auth_expireSession()) {
-      if (!$this->in_fb_canvas() && isset($_COOKIE[$this->api_key . '_user'])) {
-        $cookies = array('user', 'session_key', 'expires', 'ss');
-        foreach ($cookies as $name) {
-          setcookie($this->api_key . '_' . $name, false, time() - 3600);
-          unset($_COOKIE[$this->api_key . '_' . $name]);
-        }
-        setcookie($this->api_key, false, time() - 3600);
-        unset($_COOKIE[$this->api_key]);
-      }
-
-      // now, clear the rest of the stored state
-      $this->user = 0;
-      $this->api_client->session_key = 0;
+      $this->clear_cookie_state();
       return true;
     } else {
       return false;
     }
+  }
+
+  /** Logs the user out of all temporary application sessions as well as their
+   * Facebook session.  Note this will only work if the user has a valid current
+   * session with the application.
+   *
+   * @param string  $next  URL to redirect to upon logging out
+   *
+   */
+   public function logout($next) {
+    $logout_url = $this->get_logout_url($next);
+
+    // Clear any stored state
+    $this->clear_cookie_state();
+
+    $this->redirect($logout_url);
+  }
+
+  /**
+   *  Clears any persistent state stored about the user, including
+   *  cookies and information related to the current session in the
+   *  client.
+   *
+   */
+  public function clear_cookie_state() {
+    if (!$this->in_fb_canvas() && isset($_COOKIE[$this->api_key . '_user'])) {
+       $cookies = array('user', 'session_key', 'expires', 'ss');
+       foreach ($cookies as $name) {
+         setcookie($this->api_key . '_' . $name, false, time() - 3600);
+         unset($_COOKIE[$this->api_key . '_' . $name]);
+       }
+       setcookie($this->api_key, false, time() - 3600);
+       unset($_COOKIE[$this->api_key]);
+     }
+
+     // now, clear the rest of the stored state
+     $this->user = 0;
+     $this->api_client->session_key = 0;
   }
 
   public function redirect($url) {
@@ -248,7 +275,8 @@ class Facebook {
   }
 
   public function in_frame() {
-    return isset($this->fb_params['in_canvas']) || isset($this->fb_params['in_iframe']);
+    return isset($this->fb_params['in_canvas'])
+        || isset($this->fb_params['in_iframe']);
   }
   public function in_fb_canvas() {
     return isset($this->fb_params['in_canvas']);
@@ -295,14 +323,42 @@ class Facebook {
   }
 
   public function get_add_url($next=null) {
-    return self::get_facebook_url().'/add.php?api_key='.$this->api_key .
-      ($next ? '&next=' . urlencode($next) : '');
+    $page = self::get_facebook_url().'/add.php';
+    $params = array('api_key' => $this->api_key);
+
+    if ($next) {
+      $params['next'] = $next;
+    }
+
+    return $page . '?' . http_build_query($params);
   }
 
   public function get_login_url($next, $canvas) {
-    return self::get_facebook_url().'/login.php?v=1.0&api_key=' . $this->api_key .
-      ($next ? '&next=' . urlencode($next)  : '') .
-      ($canvas ? '&canvas' : '');
+    $page = self::get_facebook_url().'/login.php';
+    $params = array('api_key' => $this->api_key,
+                    'v'       => '1.0');
+
+    if ($next) {
+      $params['next'] = $next;
+    }
+    if ($canvas) {
+      $params['canvas'] = '1';
+    }
+
+    return $page . '?' . http_build_query($params);
+  }
+
+  public function get_logout_url($next) {
+    $page = self::get_facebook_url().'/logout.php';
+    $params = array('app_key'     => $this->api_key,
+                    'session_key' => $this->api_client->session_key);
+
+    if ($next) {
+      $params['connect_next'] = 1;
+      $params['next'] = $next;
+    }
+
+    return $page . '?' . http_build_query($params);
   }
 
   public function set_user($user, $session_key, $expires=null, $session_secret=null) {

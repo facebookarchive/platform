@@ -785,12 +785,15 @@ function toggleDisplay(id, type) {
    * @param string $body_general     (Optional) Additional markup that extends
    *                                 the body of a short story.
    * @param int $story_size          (Optional) A story size (see above)
+   * @param string $user_message     (Optional) A user message for a short
+   *                                 story.
    *
    * @return bool  true on success
    */
   public function &feed_publishUserAction(
       $template_bundle_id, $template_data, $target_ids='', $body_general='',
-      $story_size=FacebookRestClient::STORY_SIZE_ONE_LINE) {
+      $story_size=FacebookRestClient::STORY_SIZE_ONE_LINE,
+      $user_message='') {
 
     if (is_array($template_data)) {
       $template_data = json_encode($template_data);
@@ -806,7 +809,8 @@ function toggleDisplay(id, type) {
               'template_data' => $template_data,
               'target_ids' => $target_ids,
               'body_general' => $body_general,
-              'story_size' => $story_size));
+              'story_size' => $story_size,
+              'user_message' => $user_message));
   }
 
   /**
@@ -2962,6 +2966,7 @@ class FacebookAPIErrorCodes {
    */
   const API_EC_PERMISSION = 200;
   const API_EC_PERMISSION_USER = 210;
+  const API_EC_PERMISSION_NO_DEVELOPERS = 211;
   const API_EC_PERMISSION_ALBUM = 220;
   const API_EC_PERMISSION_PHOTO = 221;
   const API_EC_PERMISSION_MESSAGE = 230;
@@ -3047,6 +3052,7 @@ class FacebookAPIErrorCodes {
   const FQL_EC_INVALID_SESSION = 608;
   const FQL_EC_UNSUPPORTED_APP_TYPE = 609;
   const FQL_EC_SESSION_SECRET_NOT_ALLOWED = 610;
+  const FQL_EC_DEPRECATED_TABLE = 611;
 
   const API_EC_REF_SET_FAILED = 700;
 
@@ -3155,6 +3161,7 @@ class FacebookAPIErrorCodes {
       self::API_EC_PARAM_UNKNOWN_CITY => 'Unknown city',
       self::API_EC_PERMISSION        => 'Permissions error',
       self::API_EC_PERMISSION_USER   => 'User not visible',
+      self::API_EC_PERMISSION_NO_DEVELOPERS  => 'Application has no developers',
       self::API_EC_PERMISSION_ALBUM  => 'Album not visible',
       self::API_EC_PERMISSION_PHOTO  => 'Photo not visible',
       self::API_EC_PERMISSION_EVENT  => 'Creating and modifying events required the extended permission create_event',
