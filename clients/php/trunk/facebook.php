@@ -465,7 +465,20 @@ class Facebook {
     return $fb_params;
   }
 
-  /*
+  /**
+   *  Validates the account that a user was trying to set up an
+   *  independent account through Facebook Connect.
+   *
+   *  @param  user The user attempting to set up an independent account.
+   *  @param  hash The hash passed to the reclamation URL used.
+   *  @return bool True if the user is the one that selected the
+   *               reclamation link.
+   */
+  public function verify_account_reclamation($user, $hash) {
+    return $hash == md5($user . $this->secret);
+  }
+
+  /**
    * Validates that a given set of parameters match their signature.
    * Parameters all match a given input prefix, such as "fb_sig".
    *

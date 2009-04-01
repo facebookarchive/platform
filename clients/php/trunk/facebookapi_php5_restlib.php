@@ -2637,6 +2637,47 @@ function toggleDisplay(id, type) {
         true);
   }
 
+
+  /**
+   * Bans a list of users from the app. Banned users can't
+   * access the app's canvas page and forums.
+   *
+   * @param array $uids an array of user ids
+   * @return bool true on success
+   */
+  public function admin_banUsers($uids) {
+    return $this->call_method(
+      'admin.banUsers', array('uids' => json_encode($uids)));
+  }
+
+  /**
+   * Unban users that have been previously banned with
+   * admin_banUsers().
+   *
+   * @param array $uids an array of user ids
+   * @return bool true on success
+   */
+  public function admin_unbanUsers($uids) {
+    return $this->call_method(
+      'admin.unbanUsers', array('uids' => json_encode($uids)));
+  }
+
+  /**
+   * Gets the list of users that have been banned from the application.
+   * $uids is an optional parameter that filters the result with the list
+   * of provided user ids. If $uids is provided,
+   * only banned user ids that are contained in $uids are returned.
+   *
+   * @param array $uids an array of user ids to filter by
+   * @return bool true on success
+   */
+
+  public function admin_getBannedUsers($uids = null) {
+    return $this->call_method(
+      'admin.getBannedUsers',
+      array('uids' => $uids ? json_encode($uids) : null));
+  }
+
   /* UTILITY FUNCTIONS */
 
   /**
@@ -2933,6 +2974,7 @@ class FacebookAPIErrorCodes {
   const API_EC_PERMISSION_DENIED = 10;
   const API_EC_DEPRECATED = 11;
   const API_EC_VERSION = 12;
+  const API_EC_INTERNAL_FQL_ERROR = 13;
 
   /*
    * PARAMETER ERRORS
